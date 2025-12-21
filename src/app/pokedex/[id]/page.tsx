@@ -65,7 +65,6 @@ export default function PokedexPage() {
   const pokedexId = params.id as string;
   const router = useRouter();
 
-  const [user, setUser] = useState<any>(null);
   const [pokedexName, setPokedexName] = useState("");
   const [loading, setLoading] = useState(true);
   const [hideImages, setHideImages] = useState(false);
@@ -103,8 +102,6 @@ export default function PokedexPage() {
         router.push("/auth/login");
         return;
       }
-
-      setUser(session.user);
 
       // Load pokedex name
       const { data: pokedex, error } = await supabase

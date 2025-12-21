@@ -15,7 +15,6 @@ export default function TestPage() {
 
         // Test 2: Try to get current session
         const {
-          data: { session },
           error: sessionError,
         } = await supabase.auth.getSession();
 
@@ -27,7 +26,7 @@ export default function TestPage() {
         setStatus((prev) => prev + "\n✓ Auth session check passed");
 
         // Test 3: Try to query a table (should fail if not authenticated, but that's ok)
-        const { data, error: queryError } = await supabase
+        const { error: queryError } = await supabase
           .from("pokedexes")
           .select("count")
           .limit(1);
