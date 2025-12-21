@@ -13,7 +13,6 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>("dark");
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     // Get initial theme from localStorage or system preference
@@ -25,7 +24,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     
     setTheme(initialTheme);
     applyTheme(initialTheme);
-    setMounted(true);
   }, []);
 
   const applyTheme = (newTheme: Theme) => {
