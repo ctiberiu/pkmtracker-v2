@@ -7,7 +7,6 @@ import Link from "next/link";
 import Image from "next/image";
 
 const MAX_ID = 1025;
-const INITIAL_BATCH = 100;
 const BATCH_SIZE = 100;
 
 const genRanges = [
