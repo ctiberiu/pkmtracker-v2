@@ -7,7 +7,6 @@ import Link from "next/link";
 
 export default function AccountPage() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState("");
   const [newEmail, setNewEmail] = useState("");
@@ -28,7 +27,6 @@ export default function AccountPage() {
         return;
       }
 
-      setUser(session.user);
       setEmail(session.user.email || "");
       setLoading(false);
     };
