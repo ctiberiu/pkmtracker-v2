@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
+import { PokemonCard } from "@/components/PokemonCard";
 
 const MAX_ID = 1025;
 const BATCH_SIZE = 100;
@@ -27,9 +27,6 @@ const genById = (id: number): number | null => {
   }
   return null;
 };
-
-const officialArtwork = (id: number) =>
-  `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
 
 const typeColors: Record<string, string> = {
   normal: "#A8A77A",
@@ -66,6 +63,7 @@ export default function PokedexPage() {
   const router = useRouter();
 
   const [pokedexName, setPokedexName] = useState("");
+  const [selectedGenerations, setSelectedGenerations] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
   const [hideImages, setHideImages] = useState(false);
 
@@ -103,10 +101,10 @@ export default function PokedexPage() {
         return;
       }
 
-      // Load pokedex name
+      // Load pokedex name and generations
       const { data: pokedex, error } = await supabase
         .from("pokedexes")
-        .select("name")
+        .select("name, generations")
         .eq("id", pokedexId)
         .eq("user_id", session.user.id)
         .single();
@@ -117,6 +115,7 @@ export default function PokedexPage() {
       }
 
       setPokedexName(pokedex.name);
+      setSelectedGenerations(pokedex.generations || [1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
       // Load caught pokemon
       const { data: caught } = await supabase
@@ -213,6 +212,8 @@ export default function PokedexPage() {
       const gen = genById(id);
 
       if (!gen) continue;
+      // Only show pokemon from selected generations
+      if (!selectedGenerations.includes(gen)) continue;
       if (search && !name?.toLowerCase().includes(search.toLowerCase())) continue;
       if (genFilter !== "all" && gen.toString() !== genFilter) continue;
       if (typeFilter !== "all" && !types.includes(typeFilter)) continue;
@@ -223,7 +224,7 @@ export default function PokedexPage() {
     }
 
     return out;
-  }, [search, genFilter, typeFilter, caughtFilter, idToName, idToTypes, caughtSet]);
+  }, [search, genFilter, typeFilter, caughtFilter, idToName, idToTypes, caughtSet, selectedGenerations]);
 
   // Update filtered IDs when filters change
   useEffect(() => {
@@ -333,13 +334,23 @@ export default function PokedexPage() {
     );
   }
 
-  const caughtCount = caughtSet.size;
+  // Calculate total pokemon in selected generations
+  const totalInGenerations = Array.from(idToName.keys()).filter((id) => {
+    const gen = genById(id);
+    return gen && selectedGenerations.includes(gen);
+  }).length;
+
+  const caughtCount = Array.from(caughtSet).filter((id) => {
+    const gen = genById(id);
+    return gen && selectedGenerations.includes(gen);
+  }).length;
+
   const counterText =
     caughtFilter === "caught"
-      ? `${caughtCount} / ${MAX_ID}`
+      ? `${caughtCount} / ${totalInGenerations}`
       : caughtFilter === "uncaught"
-        ? `${MAX_ID - caughtCount} / ${MAX_ID}`
-        : `${MAX_ID}`;
+        ? `${totalInGenerations - caughtCount} / ${totalInGenerations}`
+        : `${totalInGenerations}`;
 
   return (
     <main className="min-h-screen bg-pokemon-dark">
@@ -392,9 +403,11 @@ export default function PokedexPage() {
                 >
                   <option value="all">All</option>
                   {genRanges.map((r) => (
-                    <option key={r.gen} value={r.gen}>
-                      Gen {r.gen}
-                    </option>
+                    selectedGenerations.includes(r.gen) && (
+                      <option key={r.gen} value={r.gen}>
+                        Gen {r.gen}
+                      </option>
+                    )
                   ))}
                 </select>
               </div>
@@ -448,55 +461,16 @@ export default function PokedexPage() {
           className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
         >
           {cards.map((card) => (
-            <div
+            <PokemonCard
               key={card.id}
-              onClick={() => toggleCaught(card.id)}
-              className={`rounded-lg border-2 p-3 cursor-pointer transition ${
-                card.caught
-                  ? "bg-blue-900 border-blue-500"
-                  : "bg-pokemon-card border-pokemon-border hover:border-blue-500"
-              }`}
-            >
-              {!hideImages && (
-                <div className="mb-2 aspect-square relative">
-                  <Image
-                    src={officialArtwork(card.id)}
-                    alt={card.name}
-                    fill
-                    className="object-contain"
-                    loading="lazy"
-                  />
-                </div>
-              )}
-
-              <div className="text-center">
-                <p className="text-xs font-semibold text-gray-300 mb-1">
-                  #{String(card.id).padStart(3, "0")}
-                </p>
-                <p className="text-sm font-bold mb-2">{card.name}</p>
-
-                <div className="flex flex-wrap gap-1 justify-center mb-2">
-                  {card.types.map((type) => (
-                    <span
-                      key={type}
-                      className="text-xs px-2 py-0.5 rounded"
-                      style={{
-                        backgroundColor: `${typeColors[type] || "#2b3748"}22`,
-                        borderColor: typeColors[type] || "#2b3748",
-                        border: "1px solid",
-                        color: typeColors[type] || "#2b3748",
-                      }}
-                    >
-                      {type}
-                    </span>
-                  ))}
-                </div>
-
-                {card.caught && (
-                  <div className="text-green-400 text-xs font-bold">✓ Caught</div>
-                )}
-              </div>
-            </div>
+              id={card.id}
+              name={card.name}
+              caught={card.caught}
+              types={card.types}
+              hideImages={hideImages}
+              onToggleCaught={toggleCaught}
+              typeColors={typeColors}
+            />
           ))}
         </div>
 

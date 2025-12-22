@@ -1,17 +1,20 @@
-export function Pokeball({ size = "w-24 h-24" }: { size?: string }) {
+export function Pokeball({ size = "h-14 w-14" }: { size?: string }) {
   return (
     <div className="flex justify-center mb-8">
       <div className={`relative ${size}`}>
-        <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-lg">
-          {/* Top half (red) */}
-          <circle cx="100" cy="100" r="95" fill="#ef4444" />
-          {/* Bottom half (white) */}
-          <path d="M 5 100 A 95 95 0 0 1 195 100 L 195 195 A 95 95 0 0 1 5 195 Z" fill="white" />
-          {/* Center circle */}
-          <circle cx="100" cy="100" r="25" fill="white" stroke="#333" strokeWidth="3" />
-          {/* Inner dot */}
-          <circle cx="100" cy="100" r="12" fill="#333" />
-        </svg>
+        {/* Red outer circle with rotation animation */}
+        <div
+          className="absolute inset-0 rounded-full bg-pokemon-red shadow-lg"
+          style={{
+            boxShadow: "0 10px 25px -5px rgba(239, 68, 68, 0.3)",
+          }}
+        />
+        {/* Bottom white half */}
+        <div className="absolute inset-x-0 bottom-0 h-1/2 rounded-b-full bg-white" />
+        {/* Middle divider line */}
+        <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 bg-pokemon-dark" />
+        {/* Center button */}
+        <div className="absolute left-1/2 top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-pokemon-dark bg-white" />
       </div>
     </div>
   );
