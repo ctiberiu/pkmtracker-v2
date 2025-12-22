@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/lib/theme-context";
+import { Pokeball } from "@/components/Pokeball";
+import { Mail, Lock, Eye, EyeOff, Sun, Moon } from "lucide-react";
 import Link from "next/link";
 
 export default function LoginPage() {
@@ -55,25 +57,16 @@ export default function LoginPage() {
         onClick={toggleTheme}
         className="absolute top-6 right-6 p-2 rounded-lg bg-light-border dark:bg-pokemon-card hover:bg-light-border/80 dark:hover:bg-pokemon-card/80 transition"
       >
-        {theme === "dark" ? "☀️" : "🌙"}
+        {theme === "dark" ? (
+          <Sun size={20} className="text-yellow-500" />
+        ) : (
+          <Moon size={20} className="text-blue-400" />
+        )}
       </button>
 
       <div className="w-full max-w-md">
         {/* Pokéball Logo */}
-        <div className="flex justify-center mb-8">
-          <div className="relative w-24 h-24">
-            <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-lg">
-              {/* Top half (red) */}
-              <circle cx="100" cy="100" r="95" fill="#ef4444" />
-              {/* Bottom half (white) */}
-              <path d="M 5 100 A 95 95 0 0 1 195 100 L 195 195 A 95 95 0 0 1 5 195 Z" fill="white" />
-              {/* Center circle */}
-              <circle cx="100" cy="100" r="25" fill="white" stroke="#333" strokeWidth="3" />
-              {/* Inner dot */}
-              <circle cx="100" cy="100" r="12" fill="#333" />
-            </svg>
-          </div>
-        </div>
+        <Pokeball />
 
         {/* Header */}
         <div className="text-center mb-8">
@@ -99,9 +92,7 @@ export default function LoginPage() {
                 Email
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                  ✉️
-                </span>
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <input
                   type="email"
                   value={email}
@@ -119,9 +110,7 @@ export default function LoginPage() {
                 Password
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                  🔒
-                </span>
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
@@ -135,7 +124,11 @@ export default function LoginPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                 >
-                  {showPassword ? "👁️" : "👁️‍🗨️"}
+                  {showPassword ? (
+                    <Eye size={20} />
+                  ) : (
+                    <EyeOff size={20} />
+                  )}
                 </button>
               </div>
             </div>
@@ -144,7 +137,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-pokemon-red hover:bg-red-500 disabled:bg-gray-400 text-white font-bold rounded-lg transition transform hover:scale-105 active:scale-95"
+              className="w-full py-3 bg-pokemon-red hover:bg-red-500 disabled:bg-gray-400 text-white font-bold rounded-lg btn-glow"
             >
               {loading ? "Signing in..." : "Log In"}
             </button>

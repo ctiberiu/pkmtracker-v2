@@ -9,15 +9,18 @@ const config: Config = {
   darkMode: "class",
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["'Outfit'", "sans-serif"],
+      },
       colors: {
-        "pokemon-dark": "#1a1a2e",
-        "pokemon-card": "#16213e",
-        "pokemon-border": "#0f3460",
-        "light-bg": "#f5f5f5",
-        "light-card": "#ffffff",
-        "light-border": "#e0e0e0",
+        "pokemon-dark": "#0f131a",
+        "pokemon-card": "#171c26ff",
+        "pokemon-border": "hsl(220 20% 18%)",
+        "light-bg": "hsl(220 20% 97%)",
+        "light-card": "hsl(0 0% 100%)",
+        "light-border": "hsl(220 15% 90%)",
         "light-text": "#1a1a1a",
-        "pokemon-red": "#ef4444",
+        "pokemon-red": "hsl(0 85% 55%)",
       },
     },
   },

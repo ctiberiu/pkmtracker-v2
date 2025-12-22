@@ -11,6 +11,16 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+const applyTheme = (newTheme: Theme) => {
+  const html = document.documentElement;
+  if (newTheme === "dark") {
+    html.classList.add("dark");
+  } else {
+    html.classList.remove("dark");
+  }
+  localStorage.setItem("theme", newTheme);
+};
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>("dark");
 
@@ -25,16 +35,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setTheme(initialTheme);
     applyTheme(initialTheme);
   }, []);
-
-  const applyTheme = (newTheme: Theme) => {
-    const html = document.documentElement;
-    if (newTheme === "dark") {
-      html.classList.add("dark");
-    } else {
-      html.classList.remove("dark");
-    }
-    localStorage.setItem("theme", newTheme);
-  };
 
   const toggleTheme = () => {
     const newTheme = theme === "dark" ? "light" : "dark";
