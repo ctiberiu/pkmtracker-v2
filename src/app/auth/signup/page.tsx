@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/lib/theme-context";
 import { Pokeball } from "@/components/Pokeball";
+import { Mail, Lock, Eye, EyeOff, Sun, Moon } from "lucide-react";
 import Link from "next/link";
 
 export default function SignupPage() {
@@ -64,7 +65,11 @@ export default function SignupPage() {
         onClick={toggleTheme}
         className="absolute top-6 right-6 p-2 rounded-lg bg-light-border dark:bg-pokemon-card hover:bg-light-border/80 dark:hover:bg-pokemon-card/80 transition"
       >
-        {theme === "dark" ? "☀️" : "🌙"}
+        {theme === "dark" ? (
+          <Sun size={20} className="text-yellow-500" />
+        ) : (
+          <Moon size={20} className="text-blue-400" />
+        )}
       </button>
 
       <div className="w-full max-w-md">
@@ -95,9 +100,7 @@ export default function SignupPage() {
                 Email
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                  ✉️
-                </span>
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <input
                   type="email"
                   value={email}
@@ -115,9 +118,7 @@ export default function SignupPage() {
                 Password
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                  🔒
-                </span>
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
@@ -131,7 +132,11 @@ export default function SignupPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                 >
-                  {showPassword ? "👁️" : "👁️‍🗨️"}
+                  {showPassword ? (
+                    <Eye size={20} />
+                  ) : (
+                    <EyeOff size={20} />
+                  )}
                 </button>
               </div>
             </div>
@@ -142,9 +147,7 @@ export default function SignupPage() {
                 Confirm Password
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                  🔒
-                </span>
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <input
                   type={showConfirmPassword ? "text" : "password"}
                   value={confirmPassword}
@@ -158,7 +161,11 @@ export default function SignupPage() {
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                 >
-                  {showConfirmPassword ? "👁️" : "👁️‍🗨️"}
+                  {showConfirmPassword ? (
+                    <Eye size={20} />
+                  ) : (
+                    <EyeOff size={20} />
+                  )}
                 </button>
               </div>
             </div>
@@ -167,7 +174,7 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-pokemon-red hover:bg-red-500 disabled:bg-gray-400 text-white font-bold rounded-lg transition transform hover:scale-105 active:scale-95"
+              className="w-full py-3 bg-pokemon-red hover:bg-red-500 disabled:bg-gray-400 text-white font-bold rounded-lg btn-glow"
             >
               {loading ? "Creating account..." : "Sign Up"}
             </button>

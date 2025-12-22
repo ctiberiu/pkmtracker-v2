@@ -4,11 +4,37 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Plus } from "lucide-react";
+import { CreatePokedexModal } from "@/components/CreatePokedexModal";
+
+const genRanges = [
+  { gen: 1, s: 1, e: 151 },
+  { gen: 2, s: 152, e: 251 },
+  { gen: 3, s: 252, e: 386 },
+  { gen: 4, s: 387, e: 493 },
+  { gen: 5, s: 494, e: 649 },
+  { gen: 6, s: 650, e: 721 },
+  { gen: 7, s: 722, e: 809 },
+  { gen: 8, s: 810, e: 905 },
+  { gen: 9, s: 906, e: 1025 },
+];
+
+const getTotalPokemonForGenerations = (generations: number[]): number => {
+  let total = 0;
+  for (const gen of generations) {
+    const range = genRanges.find((r) => r.gen === gen);
+    if (range) {
+      total += range.e - range.s + 1;
+    }
+  }
+  return total;
+};
 
 interface Pokedex {
   id: string;
   name: string;
   created_at: string;
+  generations: number[];
 }
 
 interface PokedexStats {
@@ -23,9 +49,9 @@ export default function DashboardPage() {
   const [pokedexes, setPokedexes] = useState<Pokedex[]>([]);
   const [stats, setStats] = useState<PokedexStats>({});
   const [loading, setLoading] = useState(true);
-  const [newPokedexName, setNewPokedexName] = useState("");
   const [creatingPokedex, setCreatingPokedex] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -50,12 +76,17 @@ export default function DashboardPage() {
     try {
       const { data, error } = await supabase
         .from("pokedexes")
-        .select("id, name, created_at")
+        .select("id, name, created_at, generations")
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setPokedexes(data || []);
+      setPokedexes(
+        (data || []).map((p) => ({
+          ...p,
+          generations: p.generations || [1, 2, 3, 4, 5, 6, 7, 8, 9],
+        }))
+      );
 
       // Fetch stats for each pokedex
       if (data && data.length > 0) {
@@ -66,9 +97,12 @@ export default function DashboardPage() {
             .select("*", { count: "exact", head: true })
             .eq("pokedex_id", pokedex.id);
 
+          const generations = pokedex.generations || [1, 2, 3, 4, 5, 6, 7, 8, 9];
+          const total = getTotalPokemonForGenerations(generations);
+
           statsMap[pokedex.id] = {
             caught: count || 0,
-            total: 1025,
+            total,
           };
         }
         setStats(statsMap);
@@ -80,9 +114,8 @@ export default function DashboardPage() {
     }
   };
 
-  const handleCreatePokedex = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newPokedexName.trim() || !user) return;
+  const handleCreatePokedex = async (name: string, generations: number[]) => {
+    if (!user) return;
 
     setCreatingPokedex(true);
     try {
@@ -91,7 +124,8 @@ export default function DashboardPage() {
         .insert([
           {
             user_id: user.id,
-            name: newPokedexName,
+            name,
+            generations,
           },
         ])
         .select();
@@ -100,13 +134,19 @@ export default function DashboardPage() {
 
       const newPokedex = data?.[0];
       if (newPokedex) {
-        setPokedexes([newPokedex, ...pokedexes]);
+        setPokedexes([
+          {
+            ...newPokedex,
+            generations: newPokedex.generations || generations,
+          },
+          ...pokedexes,
+        ]);
         setStats({
           ...stats,
           [newPokedex.id]: { caught: 0, total: 1025 },
         });
       }
-      setNewPokedexName("");
+      setIsModalOpen(false);
     } catch (err) {
       console.error("Failed to create pokedex:", err);
     } finally {
@@ -186,24 +226,16 @@ export default function DashboardPage() {
 
         {/* Create New Pokédex */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-4">My Pokédexes</h2>
-
-          <form onSubmit={handleCreatePokedex} className="mb-8 flex gap-2">
-            <input
-              type="text"
-              value={newPokedexName}
-              onChange={(e) => setNewPokedexName(e.target.value)}
-              placeholder="Enter pokedex name..."
-              className="flex-1 px-4 py-2 bg-pokemon-dark border border-pokemon-border rounded focus:outline-none focus:border-blue-500"
-            />
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold">My Pokédexes</h2>
             <button
-              type="submit"
-              disabled={creatingPokedex || !newPokedexName.trim()}
-              className="px-6 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 rounded font-semibold transition"
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center gap-2 px-6 py-3 bg-pokemon-red hover:bg-red-600 rounded-lg font-semibold transition"
             >
-              {creatingPokedex ? "Creating..." : "Create"}
+              <Plus size={20} />
+              Create New Pokédex
             </button>
-          </form>
+          </div>
 
           {pokedexes.length === 0 ? (
             <div className="text-center py-12 text-gray-400">
@@ -271,6 +303,13 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
+
+      <CreatePokedexModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onCreate={handleCreatePokedex}
+        isLoading={creatingPokedex}
+      />
     </main>
   );
 }
