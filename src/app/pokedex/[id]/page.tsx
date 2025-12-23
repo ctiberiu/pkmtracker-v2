@@ -4,7 +4,12 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
-import { PokemonCard } from "@/components/PokemonCard";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { PokedexProgress } from "@/components/PokedexProgress";
+import { PokedexFilter } from "@/components/PokedexFilter";
+import { PokemonGrid } from "@/components/PokemonGrid";
+import { ScrollToTop } from "@/components/ScrollToTop";
 
 const MAX_ID = 1025;
 const BATCH_SIZE = 100;
@@ -72,10 +77,11 @@ export default function PokedexPage() {
   const [caughtSet, setCaughtSet] = useState<Set<number>>(new Set());
 
   const [search, setSearch] = useState("");
-  const [genFilter, setGenFilter] = useState("all");
-  const [typeFilter, setTypeFilter] = useState("all");
+  const [genFilter, setGenFilter] = useState<Set<number>>(() => new Set());
+  const [typeFilter, setTypeFilter] = useState<Set<string>>(() => new Set());
   const [caughtFilter, setCaughtFilter] = useState("all");
   const [typeList, setTypeList] = useState<string[]>([]);
+  const [showFilters, setShowFilters] = useState(false);
 
   const [filteredIds, setFilteredIds] = useState<number[]>([]);
   const [renderIndex, setRenderIndex] = useState(0);
@@ -215,8 +221,8 @@ export default function PokedexPage() {
       // Only show pokemon from selected generations
       if (!selectedGenerations.includes(gen)) continue;
       if (search && !name?.toLowerCase().includes(search.toLowerCase())) continue;
-      if (genFilter !== "all" && gen.toString() !== genFilter) continue;
-      if (typeFilter !== "all" && !types.includes(typeFilter)) continue;
+      if (genFilter.size > 0 && !genFilter.has(gen)) continue;
+      if (typeFilter.size > 0 && !types.some(t => typeFilter.has(t))) continue;
       if (caughtFilter === "caught" && !caughtSet.has(id)) continue;
       if (caughtFilter === "uncaught" && caughtSet.has(id)) continue;
 
@@ -353,7 +359,7 @@ export default function PokedexPage() {
         : `${totalInGenerations}`;
 
   return (
-    <main className="min-h-screen bg-pokemon-dark">
+    <main className="min-h-screen bg-pokemon-dark flex flex-col">
       {/* Toast Notification */}
       {toastMessage && (
         <div
@@ -367,119 +373,46 @@ export default function PokedexPage() {
         </div>
       )}
 
-      <header className="bg-pokemon-card border-b border-pokemon-border sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="mb-4 flex justify-between items-center">
-            <div>
-              <Link
-                href="/dashboard"
-                className="text-blue-400 hover:text-blue-300 text-sm mb-2 inline-block"
-              >
-                ← Back to Dashboard
-              </Link>
-              <h1 className="text-3xl font-bold">
-                {pokedexName} <span className="text-gray-400 text-lg">Gen 1–9</span>{" "}
-                <span className="text-gray-400 text-lg">{counterText}</span>
-              </h1>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <input
-              type="text"
-              placeholder="Search Pokémon..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full px-4 py-2 bg-pokemon-dark border border-pokemon-border rounded focus:outline-none focus:border-blue-500"
-            />
-
-            <div className="flex gap-4 flex-wrap items-end">
-              <div className="flex flex-col gap-1">
-                <label className="text-sm text-gray-400">Generation</label>
-                <select
-                  value={genFilter}
-                  onChange={(e) => setGenFilter(e.target.value)}
-                  className="px-3 py-2 bg-pokemon-dark border border-pokemon-border rounded focus:outline-none focus:border-blue-500"
-                >
-                  <option value="all">All</option>
-                  {genRanges.map((r) => (
-                    selectedGenerations.includes(r.gen) && (
-                      <option key={r.gen} value={r.gen}>
-                        Gen {r.gen}
-                      </option>
-                    )
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-sm text-gray-400">Type</label>
-                <select
-                  value={typeFilter}
-                  onChange={(e) => setTypeFilter(e.target.value)}
-                  className="px-3 py-2 bg-pokemon-dark border border-pokemon-border rounded focus:outline-none focus:border-blue-500"
-                >
-                  <option value="all">All</option>
-                  {typeList.map((t) => (
-                    <option key={t} value={t}>
-                      {t.charAt(0).toUpperCase() + t.slice(1)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-sm text-gray-400">Caught</label>
-                <select
-                  value={caughtFilter}
-                  onChange={(e) => setCaughtFilter(e.target.value)}
-                  className="px-3 py-2 bg-pokemon-dark border border-pokemon-border rounded focus:outline-none focus:border-blue-500"
-                >
-                  <option value="all">All</option>
-                  <option value="caught">Caught</option>
-                  <option value="uncaught">Uncaught</option>
-                </select>
-              </div>
-
-              <div className="flex items-center gap-2 ml-auto">
-                <label className="text-sm text-gray-400">Hide images</label>
-                <input
-                  type="checkbox"
-                  checked={hideImages}
-                  onChange={(e) => setHideImages(e.target.checked)}
-                  className="w-4 h-4"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <div
-          ref={gridRef}
-          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
+      <Header title={`${pokedexName} ${counterText}`}>
+        <Link
+          href="/dashboard"
+          className="text-blue-400 hover:text-blue-300 transition"
         >
-          {cards.map((card) => (
-            <PokemonCard
-              key={card.id}
-              id={card.id}
-              name={card.name}
-              caught={card.caught}
-              types={card.types}
-              hideImages={hideImages}
-              onToggleCaught={toggleCaught}
-              typeColors={typeColors}
-            />
-          ))}
-        </div>
+          ← Back to Dashboard
+        </Link>
+      </Header>
 
-        {cards.length === 0 && filteredIds.length === 0 && (
-          <div className="text-center py-12 text-gray-400">
-            <p>No Pokémon match your filters</p>
-          </div>
-        )}
-      </main>
+      <PokedexProgress caughtCount={caughtCount} totalCount={totalInGenerations} />
+
+      <PokedexFilter
+        search={search}
+        onSearchChange={setSearch}
+        genFilter={genFilter}
+        onGenFilterChange={setGenFilter}
+        typeFilter={typeFilter}
+        onTypeFilterChange={setTypeFilter}
+        caughtFilter={caughtFilter}
+        onCaughtFilterChange={setCaughtFilter}
+        hideImages={hideImages}
+        onHideImagesChange={setHideImages}
+        showFilters={showFilters}
+        onShowFiltersChange={setShowFilters}
+        typeList={typeList}
+        genRanges={genRanges}
+        selectedGenerations={selectedGenerations}
+      />
+
+      <PokemonGrid
+        cards={cards}
+        filteredIdsLength={filteredIds.length}
+        hideImages={hideImages}
+        onToggleCaught={toggleCaught}
+        typeColors={typeColors}
+        gridRef={gridRef}
+      />
+
+      <Footer />
+      <ScrollToTop />
     </main>
   );
 }

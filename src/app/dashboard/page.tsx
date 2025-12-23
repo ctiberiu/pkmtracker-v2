@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { CreatePokedexModal } from "@/components/CreatePokedexModal";
+import { Header } from "@/components/Header";
 
 const genRanges = [
   { gen: 1, s: 1, e: 151 },
@@ -191,19 +192,14 @@ export default function DashboardPage() {
 
   return (
     <main className="min-h-screen bg-pokemon-dark">
-      <header className="bg-pokemon-card border-b border-pokemon-border">
-        <div className="max-w-7xl mx-auto px-4 py-6 flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <div className="flex gap-4">
-            <Link
-              href="/account"
-              className="px-4 py-2 text-blue-400 hover:text-blue-300 transition"
-            >
-              Account
-            </Link>
-          </div>
-        </div>
-      </header>
+      <Header title="Dashboard">
+        <Link
+          href="/account"
+          className="px-4 py-2 text-blue-400 hover:text-blue-300 transition"
+        >
+          Account
+        </Link>
+      </Header>
 
       <div className="max-w-7xl mx-auto px-4 py-12">
         {/* Overall Stats */}

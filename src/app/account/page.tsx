@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Header } from "@/components/Header";
 
 export default function AccountPage() {
   const router = useRouter();
@@ -106,16 +107,11 @@ export default function AccountPage() {
 
   return (
     <main className="min-h-screen bg-pokemon-dark">
-      <header className="bg-pokemon-card border-b border-pokemon-border">
-        <div className="max-w-7xl mx-auto px-4 py-6 flex justify-between items-center">
-          <div>
-            <Link href="/dashboard" className="text-blue-400 hover:text-blue-300 text-sm mb-2 inline-block">
-              ← Back to Dashboard
-            </Link>
-            <h1 className="text-3xl font-bold">Account Settings</h1>
-          </div>
-        </div>
-      </header>
+      <Header title="Account Settings">
+        <Link href="/dashboard" className="text-blue-400 hover:text-blue-300 transition">
+          ← Back to Dashboard
+        </Link>
+      </Header>
 
       <div className="max-w-2xl mx-auto px-4 py-12">
         {message && (

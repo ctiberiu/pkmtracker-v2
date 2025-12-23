@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Header } from "@/components/Header";
 
 export default function Home() {
   const router = useRouter();
@@ -24,25 +25,20 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-pokemon-dark">
-      <header className="bg-pokemon-card border-b border-pokemon-border">
-        <div className="max-w-7xl mx-auto px-4 py-6 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Pokédex Tracker</h1>
-          <div className="flex gap-4">
-            <Link
-              href="/auth/login"
-              className="px-4 py-2 text-blue-400 hover:text-blue-300 transition"
-            >
-              Login
-            </Link>
-            <Link
-              href="/auth/signup"
-              className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded font-semibold transition"
-            >
-              Sign Up
-            </Link>
-          </div>
-        </div>
-      </header>
+      <Header title="Pokédex Tracker">
+        <Link
+          href="/auth/login"
+          className="px-4 py-2 text-blue-400 hover:text-blue-300 transition"
+        >
+          Login
+        </Link>
+        <Link
+          href="/auth/signup"
+          className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded font-semibold transition"
+        >
+          Sign Up
+        </Link>
+      </Header>
 
       <div className="max-w-7xl mx-auto px-4 py-16">
         <div className="text-center mb-16">
