@@ -143,12 +143,13 @@ export default function DashboardPage() {
         ]);
         setStats({
           ...stats,
-          [newPokedex.id]: { caught: 0, total: 1025 },
+          [newPokedex.id]: { caught: 0, total: getTotalPokemonForGenerations(generations) },
         });
       }
       setIsModalOpen(false);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to create pokedex:", err);
+      throw err;
     } finally {
       setCreatingPokedex(false);
     }

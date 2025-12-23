@@ -28,6 +28,7 @@ export function CreatePokedexModal({
 }: CreatePokedexModalProps) {
   const [name, setName] = useState("");
   const [selectedGens, setSelectedGens] = useState<Set<number>>(new Set([1, 2, 3, 4, 5, 6, 7, 8, 9]));
+  const [error, setError] = useState<string>("");
 
   const toggleGen = (gen: number) => {
     const newSet = new Set(selectedGens);
@@ -51,9 +52,19 @@ export function CreatePokedexModal({
     e.preventDefault();
     if (!name.trim() || selectedGens.size === 0) return;
 
-    await onCreate(name, Array.from(selectedGens).sort());
-    setName("");
-    setSelectedGens(new Set(genRanges.map((r) => r.gen)));
+    setError("");
+    try {
+      await onCreate(name, Array.from(selectedGens).sort());
+      setName("");
+      setSelectedGens(new Set(genRanges.map((r) => r.gen)));
+      onClose();
+    } catch (err: any) {
+      if (err.code === "23505") {
+        setError("A Pokédex with this name already exists. Please choose a different name.");
+      } else {
+        setError("Failed to create Pokédex. Please try again.");
+      }
+    }
   };
 
   if (!isOpen) return null;
@@ -76,13 +87,23 @@ export function CreatePokedexModal({
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Error Message */}
+          {error && (
+            <div className="px-4 py-3 bg-red-900 border border-red-700 rounded-lg text-red-100 text-sm">
+              {error}
+            </div>
+          )}
+
           {/* Name Input */}
           <div>
             <label className="block text-sm font-semibold mb-2">Pokédex Name</label>
             <input
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                setName(e.target.value);
+                setError("");
+              }}
               placeholder="e.g., My Kanto Adventure"
               className="w-full px-4 py-2 bg-pokemon-dark border border-pokemon-border rounded-lg focus:outline-none focus:border-pokemon-red"
             />
