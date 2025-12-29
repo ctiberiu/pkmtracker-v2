@@ -208,7 +208,7 @@ export default function PokedexPage() {
     }
 
     return out;
-  }, [search, genFilter, typeFilter, caughtFilter, idToName, idToTypes, caughtPokemon, selectedGenerations]);
+  }, [search, genFilter, typeFilter, caughtFilter, idToName, idToTypes, selectedGenerations]);
 
   // Update filtered IDs when filters change
   useEffect(() => {
@@ -238,7 +238,7 @@ export default function PokedexPage() {
 
     setCards((prev) => [...prev, ...newCards]);
     setRenderIndex(to);
-  }, [renderIndex, filteredIds, idToName, idToTypes, caughtPokemon]);
+  }, [renderIndex, filteredIds, idToName, idToTypes]);
 
   // Initial render
   useEffect(() => {
@@ -268,27 +268,28 @@ export default function PokedexPage() {
       prev.map((c) => (c.id === id ? { ...c, caught: !c.caught } : c))
     );
 
-    // Update store in background
-    try {
-      await toggleCaughtPokemon(pokedexId, id);
-      setToastMessage({
-        type: "success",
-        text: isCaught ? "Pokémon unmarked as caught!" : "Pokémon marked as caught!",
+    // Update store in background (don't await to prevent re-render)
+    toggleCaughtPokemon(pokedexId, id)
+      .then(() => {
+        setToastMessage({
+          type: "success",
+          text: isCaught ? "Pokémon unmarked as caught!" : "Pokémon marked as caught!",
+        });
+        setTimeout(() => setToastMessage(null), 3000);
+      })
+      .catch((err) => {
+        console.error("Failed to update caught status:", err);
+        // Revert card UI on error
+        setCards((prev) =>
+          prev.map((c) => (c.id === id ? { ...c, caught: isCaught } : c))
+        );
+        // Show error toast
+        setToastMessage({
+          type: "error",
+          text: "Failed to update Pokémon. Please try again.",
+        });
+        setTimeout(() => setToastMessage(null), 3000);
       });
-      setTimeout(() => setToastMessage(null), 3000);
-    } catch (err) {
-      console.error("Failed to update caught status:", err);
-      // Revert card UI on error
-      setCards((prev) =>
-        prev.map((c) => (c.id === id ? { ...c, caught: isCaught } : c))
-      );
-      // Show error toast
-      setToastMessage({
-        type: "error",
-        text: "Failed to update Pokémon. Please try again.",
-      });
-      setTimeout(() => setToastMessage(null), 3000);
-    }
   }, [caughtPokemon, pokedexId, toggleCaughtPokemon]);
 
   if (!mounted || loading) {
