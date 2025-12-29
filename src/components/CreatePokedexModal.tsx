@@ -1,17 +1,6 @@
 import { useState } from "react";
 import { X } from "lucide-react";
-
-const genRanges = [
-  { gen: 1, name: "Kanto", s: 1, e: 151 },
-  { gen: 2, name: "Johto", s: 152, e: 251 },
-  { gen: 3, name: "Hoenn", s: 252, e: 386 },
-  { gen: 4, name: "Sinnoh", s: 387, e: 493 },
-  { gen: 5, name: "Unova", s: 494, e: 649 },
-  { gen: 6, name: "Kalos", s: 650, e: 721 },
-  { gen: 7, name: "Alola", s: 722, e: 809 },
-  { gen: 8, name: "Galar", s: 810, e: 905 },
-  { gen: 9, name: "Paldea", s: 906, e: 1025 },
-];
+import { genRanges } from "@/constants/pokemon";
 
 interface CreatePokedexModalProps {
   isOpen: boolean;

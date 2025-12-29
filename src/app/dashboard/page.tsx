@@ -1,24 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { CreatePokedexModal } from "@/components/CreatePokedexModal";
 import { Header } from "@/components/Header";
-
-const genRanges = [
-  { gen: 1, s: 1, e: 151 },
-  { gen: 2, s: 152, e: 251 },
-  { gen: 3, s: 252, e: 386 },
-  { gen: 4, s: 387, e: 493 },
-  { gen: 5, s: 494, e: 649 },
-  { gen: 6, s: 650, e: 721 },
-  { gen: 7, s: 722, e: 809 },
-  { gen: 8, s: 810, e: 905 },
-  { gen: 9, s: 906, e: 1025 },
-];
+import { genRanges } from "@/constants/pokemon";
+import { useUserStore } from "@/store/userStore";
+import { usePokedexStore } from "@/store/pokedexStore";
 
 const getTotalPokemonForGenerations = (generations: number[]): number => {
   let total = 0;
@@ -31,13 +21,6 @@ const getTotalPokemonForGenerations = (generations: number[]): number => {
   return total;
 };
 
-interface Pokedex {
-  id: string;
-  name: string;
-  created_at: string;
-  generations: number[];
-}
-
 interface PokedexStats {
   [key: string]: {
     total: number;
@@ -46,113 +29,70 @@ interface PokedexStats {
 }
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<any>(null);
-  const [pokedexes, setPokedexes] = useState<Pokedex[]>([]);
+  const router = useRouter();
+  const { user, loading: userLoading, fetchUser } = useUserStore();
+  const { pokedexes, loading: pokedexLoading, fetchPokedexes, createPokedex, deletePokedex } = usePokedexStore();
   const [stats, setStats] = useState<PokedexStats>({});
-  const [loading, setLoading] = useState(true);
-  const [creatingPokedex, setCreatingPokedex] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
-    const checkUser = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+    const initializeUser = async () => {
+      await fetchUser();
+    };
 
-      if (!session) {
-        router.push("/auth/login");
+    initializeUser();
+  }, [fetchUser]);
+
+  useEffect(() => {
+    if (!user) {
+      router.push("/auth/login");
+      return;
+    }
+
+    const loadPokedexes = async () => {
+      await fetchPokedexes(user.id);
+    };
+
+    loadPokedexes();
+  }, [user, fetchPokedexes, router]);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (pokedexes.length === 0) {
+        setStats({});
         return;
       }
 
-      setUser(session.user);
-      fetchPokedexes(session.user.id);
-    };
+      const statsMap: PokedexStats = {};
+      for (const pokedex of pokedexes) {
+        const { data, error } = await fetch(`/api/pokedex/${pokedex.id}/stats`).then((r) => r.json());
 
-    checkUser();
-  }, [router]);
-
-  const fetchPokedexes = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from("pokedexes")
-        .select("id, name, created_at, generations")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setPokedexes(
-        (data || []).map((p) => ({
-          ...p,
-          generations: p.generations || [1, 2, 3, 4, 5, 6, 7, 8, 9],
-        }))
-      );
-
-      // Fetch stats for each pokedex
-      if (data && data.length > 0) {
-        const statsMap: PokedexStats = {};
-        for (const pokedex of data) {
-          const { count } = await supabase
-            .from("caught_pokemon")
-            .select("*", { count: "exact", head: true })
-            .eq("pokedex_id", pokedex.id);
-
+        if (!error && data) {
           const generations = pokedex.generations || [1, 2, 3, 4, 5, 6, 7, 8, 9];
           const total = getTotalPokemonForGenerations(generations);
 
           statsMap[pokedex.id] = {
-            caught: count || 0,
+            caught: data.count || 0,
             total,
           };
         }
-        setStats(statsMap);
       }
-    } catch (err) {
-      console.error("Failed to fetch pokedexes:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+      setStats(statsMap);
+    };
+
+    fetchStats();
+  }, [pokedexes]);
 
   const handleCreatePokedex = async (name: string, generations: number[]) => {
     if (!user) return;
 
-    setCreatingPokedex(true);
     try {
-      const { data, error } = await supabase
-        .from("pokedexes")
-        .insert([
-          {
-            user_id: user.id,
-            name,
-            generations,
-          },
-        ])
-        .select();
-
-      if (error) throw error;
-
-      const newPokedex = data?.[0];
-      if (newPokedex) {
-        setPokedexes([
-          {
-            ...newPokedex,
-            generations: newPokedex.generations || generations,
-          },
-          ...pokedexes,
-        ]);
-        setStats({
-          ...stats,
-          [newPokedex.id]: { caught: 0, total: getTotalPokemonForGenerations(generations) },
-        });
-      }
+      await createPokedex(user.id, name, generations);
       setIsModalOpen(false);
     } catch (err: any) {
       console.error("Failed to create pokedex:", err);
       throw err;
-    } finally {
-      setCreatingPokedex(false);
     }
   };
 
@@ -161,14 +101,7 @@ export default function DashboardPage() {
 
     setDeletingId(id);
     try {
-      const { error } = await supabase
-        .from("pokedexes")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
-
-      setPokedexes(pokedexes.filter((p) => p.id !== id));
+      await deletePokedex(id);
       const newStats = { ...stats };
       delete newStats[id];
       setStats(newStats);
@@ -178,6 +111,8 @@ export default function DashboardPage() {
       setDeletingId(null);
     }
   };
+
+  const loading = userLoading || pokedexLoading;
 
   if (loading) {
     return (
@@ -305,7 +240,7 @@ export default function DashboardPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onCreate={handleCreatePokedex}
-        isLoading={creatingPokedex}
+        isLoading={pokedexLoading}
       />
     </main>
   );

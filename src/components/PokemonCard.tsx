@@ -25,17 +25,17 @@ export function PokemonCard({
   return (
     <div
       onClick={() => onToggleCaught(id)}
-      className={`rounded-2xl p-4 cursor-pointer transition-all flex flex-col items-center ${
+      className={`rounded-2xl p-4 cursor-pointer transition-all flex flex-col items-center bg-light-card dark:bg-pokemon-card border ${
         caught
-          ? "bg-light-card dark:bg-pokemon-card border"
-          : "bg-light-card dark:bg-pokemon-card border border-pokemon-border dark:border-pokemon-border"
+          ? "border-gray-900 dark:border-gray-400"
+          : "border-gray-200 dark:border-pokemon-border"
       }`}
     >
       {/* Pokemon Image */}
       {!hideImages && (
         <div
           className={`w-16 h-16 mb-3 transition-all ${
-            caught ? "grayscale-0" : "grayscale opacity-25"
+            caught ? "grayscale-0" : "grayscale opacity-35"
           }`}
         >
           <Image
@@ -59,7 +59,7 @@ export function PokemonCard({
       {/* Pokemon Name */}
       <p
         className={`text-center text-sm font-bold text-light-text dark:text-white mb-3 transition-opacity ${
-          caught ? "opacity-100" : "opacity-25"
+          caught ? "opacity-100" : "opacity-35"
         }`}
       >
         {name}
@@ -68,7 +68,7 @@ export function PokemonCard({
       {/* Pokemon Types */}
       <div
         className={`flex flex-wrap gap-1 justify-center transition-opacity ${
-          caught ? "opacity-100" : "opacity-25"
+          caught ? "opacity-100" : "opacity-35"
         }`}
       >
         {types.map((type) => (

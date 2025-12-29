@@ -3,56 +3,17 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter, useParams } from "next/navigation";
-import Link from "next/link";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PokedexProgress } from "@/components/PokedexProgress";
 import { PokedexFilter } from "@/components/PokedexFilter";
 import { PokemonGrid } from "@/components/PokemonGrid";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { genRanges, genById, typeColors } from "@/constants/pokemon";
+import { usePokemonStore } from "@/store/pokemonStore";
 
 const MAX_ID = 1025;
 const BATCH_SIZE = 100;
-
-const genRanges = [
-  { gen: 1, s: 1, e: 151 },
-  { gen: 2, s: 152, e: 251 },
-  { gen: 3, s: 252, e: 386 },
-  { gen: 4, s: 387, e: 493 },
-  { gen: 5, s: 494, e: 649 },
-  { gen: 6, s: 650, e: 721 },
-  { gen: 7, s: 722, e: 809 },
-  { gen: 8, s: 810, e: 905 },
-  { gen: 9, s: 906, e: 1025 },
-];
-
-const genById = (id: number): number | null => {
-  for (const r of genRanges) {
-    if (id >= r.s && id <= r.e) return r.gen;
-  }
-  return null;
-};
-
-const typeColors: Record<string, string> = {
-  normal: "#A8A77A",
-  fire: "#EE8130",
-  water: "#6390F0",
-  electric: "#F7D02C",
-  grass: "#7AC74C",
-  ice: "#96D9D6",
-  fighting: "#C22E28",
-  poison: "#A33EA1",
-  ground: "#E2BF65",
-  flying: "#A98FF3",
-  psychic: "#F95587",
-  bug: "#A6B91A",
-  rock: "#B6A136",
-  ghost: "#735797",
-  dragon: "#6F35FC",
-  dark: "#705746",
-  steel: "#B7B7CE",
-  fairy: "#D685AD",
-};
 
 interface PokemonCard {
   id: number;
@@ -67,6 +28,10 @@ export default function PokedexPage() {
   const pokedexId = params.id as string;
   const router = useRouter();
 
+  const { caughtPokemon, fetchCaughtPokemon, toggleCaughtPokemon } = usePokemonStore();
+
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
+  const [mounted, setMounted] = useState(false);
   const [pokedexName, setPokedexName] = useState("");
   const [selectedGenerations, setSelectedGenerations] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,7 +39,6 @@ export default function PokedexPage() {
 
   const [idToName, setIdToName] = useState<Map<number, string>>(new Map());
   const [idToTypes, setIdToTypes] = useState<Map<number, string[]>>(new Map());
-  const [caughtSet, setCaughtSet] = useState<Set<number>>(new Set());
 
   const [search, setSearch] = useState("");
   const [genFilter, setGenFilter] = useState<Set<number>>(() => new Set());
@@ -88,12 +52,31 @@ export default function PokedexPage() {
   const [cards, setCards] = useState<PokemonCard[]>([]);
   const [toastMessage, setToastMessage] = useState<{ type: "error" | "success"; text: string } | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
-  const caughtSetRef = useRef<Set<number>>(caughtSet);
 
-  // Keep ref in sync with caughtSet
+  // Initialize theme and listen for changes
   useEffect(() => {
-    caughtSetRef.current = caughtSet;
-  }, [caughtSet]);
+    setMounted(true);
+    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
+    if (savedTheme) {
+      setTheme(savedTheme);
+    } else {
+      const isDarkMode = document.documentElement.classList.contains("dark");
+      setTheme(isDarkMode ? "dark" : "light");
+    }
+
+    // Listen for theme changes via MutationObserver
+    const observer = new MutationObserver(() => {
+      const isDarkMode = document.documentElement.classList.contains("dark");
+      setTheme(isDarkMode ? "dark" : "light");
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   // Check auth and load pokedex
   useEffect(() => {
@@ -123,13 +106,8 @@ export default function PokedexPage() {
       setPokedexName(pokedex.name);
       setSelectedGenerations(pokedex.generations || [1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
-      // Load caught pokemon
-      const { data: caught } = await supabase
-        .from("caught_pokemon")
-        .select("pokemon_id")
-        .eq("pokedex_id", pokedexId);
-
-      setCaughtSet(new Set(caught?.map((c) => c.pokemon_id) || []));
+      // Load caught pokemon from store
+      await fetchCaughtPokemon(pokedexId);
       setLoading(false);
     };
 
@@ -220,17 +198,17 @@ export default function PokedexPage() {
       if (!gen) continue;
       // Only show pokemon from selected generations
       if (!selectedGenerations.includes(gen)) continue;
-      if (search && !name?.toLowerCase().includes(search.toLowerCase())) continue;
+      if (search && !name?.toLowerCase().includes(search.toLowerCase()) && !id.toString().includes(search)) continue;
       if (genFilter.size > 0 && !genFilter.has(gen)) continue;
       if (typeFilter.size > 0 && !types.some(t => typeFilter.has(t))) continue;
-      if (caughtFilter === "caught" && !caughtSet.has(id)) continue;
-      if (caughtFilter === "uncaught" && caughtSet.has(id)) continue;
+      if (caughtFilter === "caught" && !caughtPokemon.has(id)) continue;
+      if (caughtFilter === "uncaught" && caughtPokemon.has(id)) continue;
 
       out.push(id);
     }
 
     return out;
-  }, [search, genFilter, typeFilter, caughtFilter, idToName, idToTypes, caughtSet, selectedGenerations]);
+  }, [search, genFilter, typeFilter, caughtFilter, idToName, idToTypes, caughtPokemon, selectedGenerations]);
 
   // Update filtered IDs when filters change
   useEffect(() => {
@@ -254,13 +232,13 @@ export default function PokedexPage() {
         name: idToName.get(id) || "",
         types: idToTypes.get(id) || [],
         gen: genById(id),
-        caught: caughtSet.has(id),
+        caught: caughtPokemon.has(id),
       });
     }
 
     setCards((prev) => [...prev, ...newCards]);
     setRenderIndex(to);
-  }, [renderIndex, filteredIds, idToName, idToTypes, caughtSet]);
+  }, [renderIndex, filteredIds, idToName, idToTypes, caughtPokemon]);
 
   // Initial render
   useEffect(() => {
@@ -282,47 +260,28 @@ export default function PokedexPage() {
   }, [appendNextBatch]);
 
   // Toggle caught - only update card UI, not entire grid
-  const toggleCaught = async (id: number) => {
-    const isCaught = caughtSetRef.current.has(id);
+  const toggleCaught = useCallback(async (id: number) => {
+    const isCaught = caughtPokemon.has(id);
 
     // Update card UI only (not the entire grid)
     setCards((prev) =>
       prev.map((c) => (c.id === id ? { ...c, caught: !c.caught } : c))
     );
 
-    // Update ref immediately for next click
-    if (isCaught) {
-      caughtSetRef.current.delete(id);
-    } else {
-      caughtSetRef.current.add(id);
-    }
-
-    // Update database in background
+    // Update store in background
     try {
-      if (isCaught) {
-        await supabase
-          .from("caught_pokemon")
-          .delete()
-          .eq("pokedex_id", pokedexId)
-          .eq("pokemon_id", id);
-      } else {
-        await supabase.from("caught_pokemon").insert({
-          pokedex_id: pokedexId,
-          pokemon_id: id,
-        });
-      }
+      await toggleCaughtPokemon(pokedexId, id);
+      setToastMessage({
+        type: "success",
+        text: isCaught ? "Pokémon unmarked as caught!" : "Pokémon marked as caught!",
+      });
+      setTimeout(() => setToastMessage(null), 3000);
     } catch (err) {
       console.error("Failed to update caught status:", err);
       // Revert card UI on error
       setCards((prev) =>
         prev.map((c) => (c.id === id ? { ...c, caught: isCaught } : c))
       );
-      // Revert ref
-      if (isCaught) {
-        caughtSetRef.current.add(id);
-      } else {
-        caughtSetRef.current.delete(id);
-      }
       // Show error toast
       setToastMessage({
         type: "error",
@@ -330,12 +289,12 @@ export default function PokedexPage() {
       });
       setTimeout(() => setToastMessage(null), 3000);
     }
-  };
+  }, [caughtPokemon, pokedexId, toggleCaughtPokemon]);
 
-  if (loading) {
+  if (!mounted || loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl">Loading...</div>
+      <div className={`flex items-center justify-center min-h-screen ${theme === "dark" ? "bg-gray-950" : "bg-white"}`}>
+        <div className={`text-xl ${theme === "dark" ? "text-white" : "text-gray-900"}`}>Loading...</div>
       </div>
     );
   }
@@ -346,7 +305,7 @@ export default function PokedexPage() {
     return gen && selectedGenerations.includes(gen);
   }).length;
 
-  const caughtCount = Array.from(caughtSet).filter((id) => {
+  const caughtCount = Array.from(caughtPokemon.keys()).filter((id) => {
     const gen = genById(id);
     return gen && selectedGenerations.includes(gen);
   }).length;
@@ -358,31 +317,29 @@ export default function PokedexPage() {
         ? `${totalInGenerations - caughtCount} / ${totalInGenerations}`
         : `${totalInGenerations}`;
 
+  const isDark = theme === "dark";
+  const bgClass = isDark ? "bg-gray-950" : "bg-gradient-to-b from-white to-gray-50";
+  const toastBgClass = isDark ? "bg-red-900 border-red-700 text-red-100" : "bg-red-100 border-red-300 text-red-800";
+  const toastSuccessBgClass = isDark ? "bg-green-900 border-green-700 text-green-100" : "bg-green-100 border-green-300 text-green-800";
+
   return (
-    <main className="min-h-screen bg-pokemon-dark flex flex-col">
+    <main className={`min-h-screen ${bgClass} flex flex-col`}>
       {/* Toast Notification */}
       {toastMessage && (
         <div
-          className={`fixed top-4 right-4 px-6 py-3 rounded-lg font-semibold z-50 ${
+          className={`fixed top-4 right-4 px-6 py-3 rounded-lg font-semibold z-50 border ${
             toastMessage.type === "error"
-              ? "bg-red-900 border border-red-700 text-red-100"
-              : "bg-green-900 border border-green-700 text-green-100"
+              ? toastBgClass
+              : toastSuccessBgClass
           }`}
         >
           {toastMessage.text}
         </div>
       )}
 
-      <Header title={`${pokedexName} ${counterText}`}>
-        <Link
-          href="/dashboard"
-          className="text-blue-400 hover:text-blue-300 transition"
-        >
-          ← Back to Dashboard
-        </Link>
-      </Header>
+      <Header title={`${counterText}`} />
 
-      <PokedexProgress caughtCount={caughtCount} totalCount={totalInGenerations} />
+      <PokedexProgress caughtCount={caughtCount} totalCount={totalInGenerations} pokedexName={pokedexName} />
 
       <PokedexFilter
         search={search}
@@ -400,6 +357,7 @@ export default function PokedexPage() {
         typeList={typeList}
         genRanges={genRanges}
         selectedGenerations={selectedGenerations}
+        onBack={() => router.push("/dashboard")}
       />
 
       <PokemonGrid

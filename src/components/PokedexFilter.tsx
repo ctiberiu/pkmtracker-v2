@@ -1,6 +1,7 @@
 "use client";
 
-import { SlidersHorizontal, ImageOff } from "lucide-react";
+import { useEffect, useState } from "react";
+import { SlidersHorizontal, ImageOff, MoveLeft } from "lucide-react";
 
 interface PokedexFilterProps {
   search: string;
@@ -18,6 +19,7 @@ interface PokedexFilterProps {
   typeList: string[];
   genRanges: Array<{ gen: number; s: number; e: number }>;
   selectedGenerations: number[];
+  onBack: () => void;
 }
 
 export function PokedexFilter({
@@ -36,7 +38,42 @@ export function PokedexFilter({
   typeList,
   genRanges,
   selectedGenerations,
+  onBack,
 }: PokedexFilterProps) {
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const isDarkMode = document.documentElement.classList.contains("dark");
+    setTheme(isDarkMode ? "dark" : "light");
+
+    // Listen for theme changes
+    const observer = new MutationObserver(() => {
+      const isDarkMode = document.documentElement.classList.contains("dark");
+      setTheme(isDarkMode ? "dark" : "light");
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  if (!mounted) return null;
+
+  const isDark = theme === "dark";
+  const bgClass = isDark ? "bg-gray-950" : "bg-white";
+  const cardBgClass = isDark ? "bg-gray-900 border-gray-800" : "bg-gray-50 border-gray-200";
+  const inputBgClass = isDark ? "bg-gray-900 border-gray-800 text-white" : "bg-white border-gray-300 text-gray-900";
+  const buttonBgClass = isDark ? "bg-gray-900 border-gray-800 text-gray-300" : "bg-gray-100 border-gray-300 text-gray-700";
+  const buttonActiveBgClass = isDark ? "bg-red-600 text-white" : "bg-red-500 text-white";
+  const textClass = isDark ? "text-white" : "text-gray-900";
+  const secondaryTextClass = isDark ? "text-gray-400" : "text-gray-600";
+  const borderClass = isDark ? "border-gray-800" : "border-gray-300";
+
   const toggleTypeFilter = (type: string) => {
     if (type === "all") {
       onTypeFilterChange(new Set());
@@ -70,30 +107,37 @@ export function PokedexFilter({
   const filterCount = typeFilter.size + genFilter.size + (caughtFilter !== "all" ? 1 : 0);
 
   return (
-    <div className="sticky top-0 z-40 bg-pokemon-dark">
+    <div className={`sticky top-0 z-40 ${bgClass}`}>
       <div className="max-w-7xl mx-auto py-4 px-4">
         <div className="flex gap-4 items-center">
+          <button
+            onClick={onBack}
+            className={`px-4 py-3 ${cardBgClass} border border-solid rounded-xl transition flex items-center justify-center hover:border-red-500 ${textClass}`}
+            title="Back to dashboard"
+          >
+            <MoveLeft size={18} />
+          </button>
           <div className="flex-1 relative">
             <input
               type="text"
               placeholder="Search by name or number..."
               value={search}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="w-full px-4 py-3 bg-pokemon-card border border-pokemon-border rounded-xl focus:outline-none focus:border-blue-500 text-sm"
+              className={`w-full px-4 py-3 ${inputBgClass} border rounded-xl focus:outline-none focus:border-red-500 text-sm`}
             />
           </div>
           <button
             onClick={() => onShowFiltersChange(!showFilters)}
-            className={`px-4 py-3 bg-pokemon-card border border-solid rounded-xl transition flex items-center gap-2 text-sm font-semibold ${
+            className={`px-4 py-3 border border-solid rounded-xl transition flex items-center gap-2 text-sm font-semibold ${
               showFilters
-                ? "border-pokemon-red bg-blue-500 bg-opacity-10"
-                : "border-pokemon-border"
+                ? "bg-red-500 text-white border-red-500"
+                : `${cardBgClass} border hover:border-red-500 ${textClass}`
             }`}
           >
             <SlidersHorizontal size={18} />
             Filters
             {filterCount > 0 && (
-              <span className="ml-1 px-2 py-0.5 bg-pokemon-red text-white rounded-full text-xs font-bold">
+              <span className="ml-1 px-2 py-0.5 bg-red-500 text-white rounded-full text-xs font-bold">
                 {filterCount}
               </span>
             )}
@@ -102,8 +146,8 @@ export function PokedexFilter({
             onClick={() => onHideImagesChange(!hideImages)}
             className={`px-4 py-3 border border-solid rounded-xl transition flex items-center justify-center ${
               hideImages
-                ? "bg-pokemon-red text-white"
-                : "border-pokemon-border bg-pokemon-card text-gray-400 hover:border-pokemon-red"
+                ? "bg-red-500 text-white border-red-500"
+                : `${cardBgClass} border hover:border-red-500 ${secondaryTextClass}`
             }`}
             title="Hide images"
           >
@@ -113,17 +157,17 @@ export function PokedexFilter({
 
         {/* Expandable Filters Panel */}
         {showFilters && (
-          <div className="space-y-4 mt-4 px-4 py-4 bg-pokemon-card border border-pokemon-border rounded-xl">
+          <div className={`space-y-4 mt-4 px-4 py-4 ${cardBgClass} border rounded-xl`}>
             {/* Status Filter */}
             <div>
-              <h3 className="text-sm font-semibold mb-3">Status</h3>
+              <h3 className={`text-sm font-semibold mb-3 ${textClass}`}>Status</h3>
               <div className="flex gap-2 flex-wrap">
                 <button
                   onClick={() => onCaughtFilterChange("all")}
                   className={`px-3 py-2 rounded-lg text-xs font-semibold transition ${
                     caughtFilter === "all"
-                      ? "bg-pokemon-red text-white"
-                      : "bg-pokemon-dark border border-pokemon-border text-gray-300 hover:border-pokemon-red"
+                      ? "bg-red-500 text-white border-red-500"
+                      : `${buttonBgClass} border hover:border-red-500`
                   }`}
                 >
                   All
@@ -132,8 +176,8 @@ export function PokedexFilter({
                   onClick={() => onCaughtFilterChange("caught")}
                   className={`px-3 py-2 rounded-lg text-xs font-semibold transition ${
                     caughtFilter === "caught"
-                      ? "bg-pokemon-red text-white"
-                      : "bg-pokemon-dark border border-pokemon-border text-gray-300 hover:border-pokemon-red"
+                      ? "bg-red-500 text-white border-red-500"
+                      : `${buttonBgClass} border hover:border-red-500`
                   }`}
                 >
                   Caught
@@ -142,8 +186,8 @@ export function PokedexFilter({
                   onClick={() => onCaughtFilterChange("uncaught")}
                   className={`px-3 py-2 rounded-lg text-xs font-semibold transition ${
                     caughtFilter === "uncaught"
-                      ? "bg-pokemon-red text-white"
-                      : "bg-pokemon-dark border border-pokemon-border text-gray-300 hover:border-pokemon-red"
+                      ? "bg-red-500 text-white border-red-500"
+                      : `${buttonBgClass} border hover:border-red-500`
                   }`}
                 >
                   Uncaught
@@ -153,14 +197,14 @@ export function PokedexFilter({
 
             {/* Type Filter */}
             <div>
-              <h3 className="text-sm font-semibold mb-3">Types</h3>
+              <h3 className={`text-sm font-semibold mb-3 ${textClass}`}>Types</h3>
               <div className="flex gap-2 flex-wrap">
                 <button
                   onClick={() => toggleTypeFilter("all")}
                   className={`px-3 py-2 rounded-lg text-xs font-semibold transition ${
                     typeFilter.size === 0
-                      ? "bg-pokemon-red text-white"
-                      : "bg-pokemon-dark border border-pokemon-border text-gray-300 hover:border-pokemon-red"
+                      ? "bg-red-500 text-white border-red-500"
+                      : `${buttonBgClass} border hover:border-red-500`
                   }`}
                 >
                   All
@@ -171,8 +215,8 @@ export function PokedexFilter({
                     onClick={() => toggleTypeFilter(t)}
                     className={`px-3 py-2 rounded-lg text-xs font-semibold transition ${
                       typeFilter.has(t)
-                        ? "bg-pokemon-red text-white"
-                        : "bg-pokemon-dark border border-pokemon-border text-gray-300 hover:border-pokemon-red"
+                        ? "bg-red-500 text-white border-red-500"
+                        : `${buttonBgClass} border hover:border-red-500`
                     }`}
                   >
                     {t.charAt(0).toUpperCase() + t.slice(1)}
@@ -183,14 +227,14 @@ export function PokedexFilter({
 
             {/* Generation Filter */}
             <div>
-              <h3 className="text-sm font-semibold mb-3">Generations</h3>
+              <h3 className={`text-sm font-semibold mb-3 ${textClass}`}>Generations</h3>
               <div className="flex gap-2 flex-wrap">
                 <button
                   onClick={() => toggleGenFilter(0)}
                   className={`px-3 py-2 rounded-lg text-xs font-semibold transition ${
                     genFilter.size === 0
-                      ? "bg-pokemon-red text-white"
-                      : "bg-pokemon-dark border border-pokemon-border text-gray-300 hover:border-pokemon-red"
+                      ? "bg-red-500 text-white border-red-500"
+                      : `${buttonBgClass} border hover:border-red-500`
                   }`}
                 >
                   All
@@ -202,8 +246,8 @@ export function PokedexFilter({
                       onClick={() => toggleGenFilter(r.gen)}
                       className={`px-3 py-2 rounded-lg text-xs font-semibold transition ${
                         genFilter.has(r.gen)
-                          ? "bg-pokemon-red text-white"
-                          : "bg-pokemon-dark border border-pokemon-border text-gray-300 hover:border-pokemon-red"
+                          ? "bg-red-500 text-white border-red-500"
+                          : `${buttonBgClass} border hover:border-red-500`
                       }`}
                     >
                       Gen {r.gen}
@@ -215,7 +259,7 @@ export function PokedexFilter({
 
             {/* Clear All Filters */}
             {(typeFilter.size > 0 || genFilter.size > 0 || caughtFilter !== "all") && (
-              <div className="pt-4 border-t border-pokemon-border">
+              <div className={`pt-4 border-t ${borderClass}`}>
                 <div className="flex gap-2 flex-wrap">
                   <button
                     onClick={() => {
@@ -223,7 +267,7 @@ export function PokedexFilter({
                       onGenFilterChange(new Set());
                       onCaughtFilterChange("all");
                     }}
-                    className="px-3 py-2 rounded-lg text-xs font-semibold transition bg-pokemon-dark border border-red-500 text-red-400 hover:bg-red-500 hover:text-white"
+                    className={`px-3 py-2 rounded-lg text-xs font-semibold transition border border-red-500 text-red-500 hover:bg-red-500 hover:text-white ${isDark ? "bg-gray-900" : "bg-white"}`}
                   >
                     ✕ Clear all filters
                   </button>
