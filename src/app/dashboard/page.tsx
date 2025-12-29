@@ -127,15 +127,8 @@ export default function DashboardPage() {
 
   return (
     <main className="min-h-screen bg-pokemon-dark">
-      <Header title="Dashboard">
-        <Link
-          href="/account"
-          className="px-4 py-2 text-blue-400 hover:text-blue-300 transition"
-        >
-          Account
-        </Link>
-      </Header>
-
+      <Header title="Dashboard" />
+      
       <div className="max-w-7xl mx-auto px-4 py-12">
         {/* Overall Stats */}
         <div className="mb-12 bg-pokemon-card border border-pokemon-border rounded-lg p-8">
