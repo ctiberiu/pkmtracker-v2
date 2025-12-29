@@ -69,7 +69,6 @@ export function PokedexFilter({
   const cardBgClass = isDark ? "bg-gray-900 border-gray-800" : "bg-gray-50 border-gray-200";
   const inputBgClass = isDark ? "bg-gray-900 border-gray-800 text-white" : "bg-white border-gray-300 text-gray-900";
   const buttonBgClass = isDark ? "bg-gray-900 border-gray-800 text-gray-300" : "bg-gray-100 border-gray-300 text-gray-700";
-  const buttonActiveBgClass = isDark ? "bg-red-600 text-white" : "bg-red-500 text-white";
   const textClass = isDark ? "text-white" : "text-gray-900";
   const secondaryTextClass = isDark ? "text-gray-400" : "text-gray-600";
   const borderClass = isDark ? "border-gray-800" : "border-gray-300";
