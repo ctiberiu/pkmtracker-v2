@@ -70,7 +70,7 @@ export function Header({ children }: HeaderProps) {
           <div className="h-14 w-14 scale-75">
             <Pokeball size="h-14 w-14" />
           </div>
-          <h1 className={`text-xl font-bold ${textClass}`}>Pokédex Tracker</h1>
+          <h1 className={`text-xl font-bold ${textClass} hidden sm:block`}>Pokédex Tracker</h1>
         </div>
 
         {/* Right: Theme Switcher, Get Started, My Account, Logout */}

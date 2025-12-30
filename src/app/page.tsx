@@ -67,17 +67,17 @@ export default function Home() {
       <Header />
 
       {/* Hero Section */}
-      <section className={`${bgClass} py-20`}>
+      <section className={`${bgClass} py-10 sm:py-20`}>
         <div className="max-w-7xl mx-auto px-4">
           {/* Hero Text */}
           <div className="text-center mb-16">
             <div className="mb-4 flex justify-center">
               <span className={`text-sm font-medium px-3 py-1 rounded-full border flex items-center gap-2 ${isDark ? "border-red-500/30 text-red-400 bg-red-500/10" : "border-red-200 text-red-600 bg-red-50"}`}>
-                <Sparkles size={16} className="text-yellow-400" />
+                <Sparkles size={16} className="text-yellow-400 hidden sm:block" />
                 Track your journey to become a Pokédex Master!
               </span>
             </div>
-            <h1 className={`text-6xl font-bold mb-6 ${textClass}`}>
+            <h1 className={`text-3xl sm:text-6xl font-bold mb-6 ${textClass}`}>
               Your Personal <span className={accentClass}>Pokédex</span>
               <br />
               Companion
@@ -86,7 +86,7 @@ export default function Home() {
               Create custom Pokédex collections, track your caught Pokémon, and monitor your
               progress across all generations. The ultimate tool for collectors and trainers alike.
             </p>
-            <div className="flex gap-4 justify-center mb-8">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
               <Link
                 href="/auth/signup"
                 className="flex items-center gap-2 px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition"
@@ -99,8 +99,8 @@ export default function Home() {
           </div>
 
           {/* Pokemon Cards */}
-          <div className="flex justify-center gap-8 mb-20">
-            <div className="w-1/3 max-w-[140px]">
+          <div className="flex justify-center gap-4 mb-10 sm:mb-20 sm:gap-8 flex-wrap">
+            <div className="w-full xs:w-1/2 sm:w-1/3 max-w-[140px]">
               <PokemonCard
                 id={25}
                 name="Pikachu"
@@ -110,7 +110,7 @@ export default function Home() {
                 typeColors={typeColors}
               />
             </div>
-            <div className="w-1/3 max-w-[140px]">
+            <div className="w-full xs:w-1/2 sm:w-1/3 max-w-[140px]">
               <PokemonCard
                 id={6}
                 name="Charizard"
@@ -120,7 +120,7 @@ export default function Home() {
                 typeColors={typeColors}
               />
             </div>
-            <div className="w-1/3 max-w-[140px]">
+            <div className="w-full xs:w-1/2 sm:w-1/3 max-w-[140px]">
               <PokemonCard
                 id={150}
                 name="Mewtwo"
@@ -135,7 +135,7 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className={`${isDark ? "bg-gray-900" : "bg-gray-50"} py-20`}>
+      <section className={`${isDark ? "bg-gray-900" : "bg-gray-50"} py-10 sm:py-20`}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className={`text-4xl font-bold mb-4 ${textClass}`}>Everything You Need</h2>
