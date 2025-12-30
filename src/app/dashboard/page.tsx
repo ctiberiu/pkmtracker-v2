@@ -9,6 +9,7 @@ import { Header } from "@/components/Header";
 import { genRanges } from "@/constants/pokemon";
 import { useUserStore } from "@/store/userStore";
 import { usePokedexStore } from "@/store/pokedexStore";
+import { usePokemonStore } from "@/store/pokemonStore";
 
 const getTotalPokemonForGenerations = (generations: number[]): number => {
   let total = 0;
@@ -32,6 +33,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const { user, loading: userLoading, fetchUser } = useUserStore();
   const { pokedexes, loading: pokedexLoading, fetchPokedexes, createPokedex, deletePokedex } = usePokedexStore();
+  const { caughtPokemon, fetchCaughtPokemon } = usePokemonStore();
   const [stats, setStats] = useState<PokedexStats>({});
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -84,31 +86,42 @@ export default function DashboardPage() {
   }, [user, fetchPokedexes, router]);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchAllStats = async () => {
       if (pokedexes.length === 0) {
         setStats({});
         return;
       }
-
-      const statsMap: PokedexStats = {};
+      
+      // Fetch caught pokemon for all pokedexes
       for (const pokedex of pokedexes) {
-        const { data, error } = await fetch(`/api/pokedex/${pokedex.id}/stats`).then((r) => r.json());
-
-        if (!error && data) {
-          const generations = pokedex.generations || [1, 2, 3, 4, 5, 6, 7, 8, 9];
-          const total = getTotalPokemonForGenerations(generations);
-
-          statsMap[pokedex.id] = {
-            caught: data.count || 0,
-            total,
-          };
-        }
+        await fetchCaughtPokemon(pokedex.id);
       }
-      setStats(statsMap);
     };
 
-    fetchStats();
-  }, [pokedexes]);
+    fetchAllStats();
+  }, [pokedexes, fetchCaughtPokemon]);
+
+  // Recalculate stats when caughtPokemon changes
+  useEffect(() => {
+    if (pokedexes.length === 0) {
+      setStats({});
+      return;
+    }
+
+    const statsMap: PokedexStats = {};
+    
+    for (const pokedex of pokedexes) {
+      const generations = pokedex.generations || [1, 2, 3, 4, 5, 6, 7, 8, 9];
+      const total = getTotalPokemonForGenerations(generations);
+      
+      statsMap[pokedex.id] = {
+        caught: caughtPokemon.size,
+        total,
+      };
+    }
+    
+    setStats(statsMap);
+  }, [caughtPokemon, pokedexes]);
 
   const handleCreatePokedex = async (name: string, generations: number[]) => {
     if (!user) return;
