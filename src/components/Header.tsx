@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Moon, Sun, User, LogOut } from "lucide-react";
 import { useUserStore } from "@/store/userStore";
+import { Pokeball } from "./Pokeball";
 import Link from "next/link";
 
 interface HeaderProps {
@@ -66,8 +67,8 @@ export function Header({ children }: HeaderProps) {
       <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
         {/* Left: Logo and Title */}
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-            ◆
+          <div className="h-14 w-14 scale-75">
+            <Pokeball size="h-14 w-14" />
           </div>
           <h1 className={`text-xl font-bold ${textClass}`}>Pokédex Tracker</h1>
         </div>
