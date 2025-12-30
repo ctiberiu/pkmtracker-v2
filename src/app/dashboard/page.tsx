@@ -35,6 +35,32 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<PokedexStats>({});
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
+    if (savedTheme) {
+      setTheme(savedTheme);
+    } else {
+      const isDarkMode = document.documentElement.classList.contains("dark");
+      setTheme(isDarkMode ? "dark" : "light");
+    }
+
+    // Listen for theme changes via MutationObserver
+    const observer = new MutationObserver(() => {
+      const isDarkMode = document.documentElement.classList.contains("dark");
+      setTheme(isDarkMode ? "dark" : "light");
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    setMounted(true);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const initializeUser = async () => {
@@ -114,10 +140,12 @@ export default function DashboardPage() {
 
   const loading = userLoading || pokedexLoading;
 
-  if (loading) {
+  if (!mounted || loading) {
+    const isDark = theme === "dark";
+    const bgClass = isDark ? "bg-gray-950" : "bg-white";
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl">Loading...</div>
+      <div className={`flex items-center justify-center min-h-screen ${bgClass}`}>
+        <div className={`text-xl ${isDark ? "text-white" : "text-gray-900"}`}>Loading...</div>
       </div>
     );
   }
@@ -125,26 +153,32 @@ export default function DashboardPage() {
   const totalCaught = Object.values(stats).reduce((sum, s) => sum + s.caught, 0);
   const totalPossible = Object.values(stats).reduce((sum, s) => sum + s.total, 0);
 
+  const isDark = theme === "dark";
+  const bgClass = isDark ? "bg-gray-950" : "bg-gradient-to-b from-white to-gray-50";
+  const cardBgClass = isDark ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200";
+  const textClass = isDark ? "text-white" : "text-gray-900";
+  const secondaryTextClass = isDark ? "text-gray-400" : "text-gray-600";
+
   return (
-    <main className="min-h-screen bg-pokemon-dark">
+    <main className={`min-h-screen ${bgClass}`}>
       <Header title="Dashboard" />
       
       <div className="max-w-7xl mx-auto px-4 py-12">
         {/* Overall Stats */}
-        <div className="mb-12 bg-pokemon-card border border-pokemon-border rounded-lg p-8">
-          <h2 className="text-2xl font-bold mb-4">Overall Progress</h2>
+        <div className={`mb-12 ${cardBgClass} border rounded-lg p-8`}>
+          <h2 className={`text-2xl font-bold mb-4 ${textClass}`}>Overall Progress</h2>
           <div className="grid md:grid-cols-3 gap-8">
             <div>
-              <p className="text-gray-400 text-sm mb-2">Total Pokédexes</p>
-              <p className="text-4xl font-bold">{pokedexes.length}</p>
+              <p className={`${secondaryTextClass} text-sm mb-2`}>Total Pokédexes</p>
+              <p className={`text-4xl font-bold ${textClass}`}>{pokedexes.length}</p>
             </div>
             <div>
-              <p className="text-gray-400 text-sm mb-2">Pokémon Caught</p>
-              <p className="text-4xl font-bold">{totalCaught}</p>
+              <p className={`${secondaryTextClass} text-sm mb-2`}>Pokémon Caught</p>
+              <p className={`text-4xl font-bold ${textClass}`}>{totalCaught}</p>
             </div>
             <div>
-              <p className="text-gray-400 text-sm mb-2">Total Available</p>
-              <p className="text-4xl font-bold">{totalPossible}</p>
+              <p className={`${secondaryTextClass} text-sm mb-2`}>Total Available</p>
+              <p className={`text-4xl font-bold ${textClass}`}>{totalPossible}</p>
             </div>
           </div>
         </div>
@@ -152,10 +186,10 @@ export default function DashboardPage() {
         {/* Create New Pokédex */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold">My Pokédexes</h2>
+            <h2 className={`text-2xl font-bold ${textClass}`}>My Pokédexes</h2>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2 px-6 py-3 bg-pokemon-red hover:bg-red-600 rounded-lg font-semibold transition"
+              className="flex items-center gap-2 px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition"
             >
               <Plus size={20} />
               Create New Pokédex
@@ -163,7 +197,7 @@ export default function DashboardPage() {
           </div>
 
           {pokedexes.length === 0 ? (
-            <div className="text-center py-12 text-gray-400">
+            <div className={`text-center py-12 ${secondaryTextClass}`}>
               <p className="mb-4">No pokedexes yet. Create one to get started!</p>
             </div>
           ) : (
@@ -177,46 +211,46 @@ export default function DashboardPage() {
                 return (
                   <div
                     key={pokedex.id}
-                    className="bg-pokemon-card border border-pokemon-border rounded-lg p-6 hover:border-blue-500 transition"
+                    className={`${cardBgClass} border rounded-lg p-6 hover:border-blue-500 transition`}
                   >
                     <Link href={`/pokedex/${pokedex.id}`}>
-                      <h3 className="text-xl font-bold mb-2 hover:text-blue-400">
+                      <h3 className={`text-xl font-bold mb-2 hover:text-blue-400 ${textClass}`}>
                         {pokedex.name}
                       </h3>
                     </Link>
-                    <p className="text-gray-400 text-sm mb-4">
+                    <p className={`${secondaryTextClass} text-sm mb-4`}>
                       Created {new Date(pokedex.created_at).toLocaleDateString()}
                     </p>
 
                     {/* Progress Bar */}
                     <div className="mb-4">
                       <div className="flex justify-between text-sm mb-2">
-                        <span className="text-gray-400">Progress</span>
-                        <span className="font-semibold">
+                        <span className={secondaryTextClass}>Progress</span>
+                        <span className={`font-semibold ${textClass}`}>
                           {pokeStats.caught} / {pokeStats.total}
                         </span>
                       </div>
-                      <div className="w-full bg-pokemon-dark rounded-full h-2">
+                      <div className={`w-full ${isDark ? "bg-gray-800" : "bg-gray-200"} rounded-full h-2`}>
                         <div
                           className="bg-blue-600 h-2 rounded-full transition-all"
                           style={{ width: `${percentage}%` }}
                         />
                       </div>
-                      <p className="text-xs text-gray-400 mt-1">{percentage}% complete</p>
+                      <p className={`text-xs ${secondaryTextClass} mt-1`}>{percentage}% complete</p>
                     </div>
 
                     {/* Actions */}
                     <div className="flex gap-2">
                       <Link
                         href={`/pokedex/${pokedex.id}`}
-                        className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded text-center text-sm font-semibold transition"
+                        className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-center text-sm font-semibold transition"
                       >
                         Track
                       </Link>
                       <button
                         onClick={() => handleDeletePokedex(pokedex.id)}
                         disabled={deletingId === pokedex.id}
-                        className="px-3 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 rounded text-sm font-semibold transition"
+                        className="px-3 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white rounded text-sm font-semibold transition"
                       >
                         {deletingId === pokedex.id ? "..." : "Delete"}
                       </button>

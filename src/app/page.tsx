@@ -251,7 +251,7 @@ export default function Home() {
       {/* Footer */}
       <footer className={`${isDark ? "bg-gray-950 border-gray-800" : "bg-white border-gray-200"} border-t py-8`}>
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className={secondaryTextClass}>© 2024 Pokédex Tracker. All rights reserved.</p>
+          <p className={secondaryTextClass}>© 2025 Pokédex Tracker. All rights reserved.</p>
         </div>
       </footer>
     </main>
