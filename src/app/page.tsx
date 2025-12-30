@@ -196,15 +196,12 @@ export default function Home() {
             {/* Overview Card */}
             <div className={`${cardBgClass} border rounded-lg p-8`}>
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-white font-bold">
-                  ◆
-                </div>
                 <h3 className={`font-bold ${textClass}`}>Kanto Collection</h3>
               </div>
               <div className="space-y-4">
                 <div>
                   <div className="flex justify-between mb-2">
-                    <span className={secondaryTextClass}>151 HP caught</span>
+                    <span className={secondaryTextClass}>127 / 151 caught</span>
                     <span className="text-green-500 font-bold">84%</span>
                   </div>
                   <div className={`w-full h-2 rounded-full ${isDark ? "bg-gray-800" : "bg-gray-300"}`}>
