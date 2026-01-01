@@ -164,8 +164,6 @@ export default function DashboardPage() {
     );
   }
 
-  const totalPossible = Object.values(stats).reduce((sum, s) => sum + s.total, 0);
-
   const isDark = theme === "dark";
   const bgClass = isDark ? "bg-gray-950" : "bg-gradient-to-b from-white to-gray-50";
   const cardBgClass = isDark ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200";
