@@ -43,7 +43,7 @@ export function PokedexProgress({ caughtCount, totalCount, pokedexName }: Pokede
 
   return (
     <div className={`pt-4 ${bgClass}`}>
-      <div className="max-w-7xl mx-auto px-4 flex gap-4">
+      <div className="max-w-7xl mx-auto px-4 flex gap-4 flex-col sm:flex-row">
         {/* Pokedex Name Section */}
         <div className={`px-4 py-3 ${cardBgClass} border rounded-xl flex flex-col`}>
           <p className={`text-xs ${secondaryTextClass} mb-1`}>NAME</p>

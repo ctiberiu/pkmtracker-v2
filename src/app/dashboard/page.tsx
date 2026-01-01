@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Plus, Info, Eye, Trash2 } from "lucide-react";
 import { CreatePokedexModal } from "@/components/CreatePokedexModal";
 import { Header } from "@/components/Header";
 import { genRanges } from "@/constants/pokemon";
@@ -39,6 +39,7 @@ export default function DashboardPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">("dark");
   const [mounted, setMounted] = useState(false);
+  const [flippedCardId, setFlippedCardId] = useState<string | null>(null);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
@@ -177,24 +178,6 @@ export default function DashboardPage() {
       <Header title="Dashboard" />
       
       <div className="max-w-7xl mx-auto px-4 py-12">
-        {/* Overall Stats */}
-        <div className={`mb-12 ${cardBgClass} border rounded-lg p-8`}>
-          <h2 className={`text-2xl font-bold mb-4 ${textClass}`}>Overall Progress</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div>
-              <p className={`${secondaryTextClass} text-sm mb-2`}>Total Pokédexes</p>
-              <p className={`text-4xl font-bold ${textClass}`}>{pokedexes.length}</p>
-            </div>
-            <div>
-              <p className={`${secondaryTextClass} text-sm mb-2`}>Pokémon Caught</p>
-              <p className={`text-4xl font-bold ${textClass}`}>{totalCaught}</p>
-            </div>
-            <div>
-              <p className={`${secondaryTextClass} text-sm mb-2`}>Total Available</p>
-              <p className={`text-4xl font-bold ${textClass}`}>{totalPossible}</p>
-            </div>
-          </div>
-        </div>
 
         {/* Create New Pokédex */}
         <div className="mb-8">
@@ -220,54 +203,107 @@ export default function DashboardPage() {
                 const percentage = Math.round(
                   (pokeStats.caught / pokeStats.total) * 100
                 );
+                const isFlipped = flippedCardId === pokedex.id;
+                const generations = pokedex.generations || [1, 2, 3, 4, 5, 6, 7, 8, 9];
+                const genNames: { [key: number]: string } = {
+                  1: "Kanto", 2: "Johto", 3: "Hoenn", 4: "Sinnoh", 5: "Unova",
+                  6: "Kalos", 7: "Alola", 8: "Galar", 9: "Paldea"
+                };
 
                 return (
                   <div
                     key={pokedex.id}
-                    className={`${cardBgClass} border rounded-lg p-6 hover:border-blue-500 transition`}
+                    className={`relative h-64 ${cardBgClass} border rounded-lg p-6 transition-transform duration-300 cursor-pointer`}
+                    style={{
+                      transformStyle: "preserve-3d",
+                      transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+                    }}
                   >
-                    <Link href={`/pokedex/${pokedex.id}`}>
-                      <h3 className={`text-xl font-bold mb-2 hover:text-blue-400 ${textClass}`}>
-                        {pokedex.name}
-                      </h3>
-                    </Link>
-                    <p className={`${secondaryTextClass} text-sm mb-4`}>
-                      Created {new Date(pokedex.created_at).toLocaleDateString()}
-                    </p>
+                    {/* Front of card */}
+                    {!isFlipped && (
+                      <div className="flex flex-col h-full">
+                        <div className="flex justify-between items-start mb-4">
+                          <h3 className={`text-xl font-bold ${textClass}`}>
+                            {pokedex.name}
+                          </h3>
+                          <button
+                            onClick={() => setFlippedCardId(pokedex.id)}
+                            className={`p-2 rounded-lg transition hover:bg-red-500 hover:text-white ${textClass}`}
+                            aria-label="View generations"
+                          >
+                            <Info size={20} />
+                          </button>
+                        </div>
 
-                    {/* Progress Bar */}
-                    <div className="mb-4">
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className={secondaryTextClass}>Progress</span>
-                        <span className={`font-semibold ${textClass}`}>
-                          {pokeStats.caught} / {pokeStats.total}
-                        </span>
-                      </div>
-                      <div className={`w-full ${isDark ? "bg-gray-800" : "bg-gray-200"} rounded-full h-2`}>
-                        <div
-                          className="bg-blue-600 h-2 rounded-full transition-all"
-                          style={{ width: `${percentage}%` }}
-                        />
-                      </div>
-                      <p className={`text-xs ${secondaryTextClass} mt-1`}>{percentage}% complete</p>
-                    </div>
+                        <p className={`${secondaryTextClass} text-sm mb-4`}>
+                          Created {new Date(pokedex.created_at).toLocaleDateString()}
+                        </p>
 
-                    {/* Actions */}
-                    <div className="flex gap-2">
-                      <Link
-                        href={`/pokedex/${pokedex.id}`}
-                        className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-center text-sm font-semibold transition"
+                        {/* Progress Bar */}
+                        <div className="mb-6 flex-1">
+                          <div className="flex justify-between text-sm mb-2">
+                            <span className={secondaryTextClass}>Progress</span>
+                            <span className={`font-semibold ${textClass}`}>
+                              {pokeStats.caught} / {pokeStats.total}
+                            </span>
+                          </div>
+                          <div className={`w-full ${isDark ? "bg-gray-800" : "bg-gray-200"} rounded-full h-2`}>
+                            <div
+                              className="bg-red-500 h-2 rounded-full transition-all"
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </div>
+                          <p className={`text-xs ${secondaryTextClass} mt-1`}>{percentage}% complete</p>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex gap-2 mt-auto">
+                          <Link
+                            href={`/pokedex/${pokedex.id}`}
+                            className={`flex-1 px-3 py-2 border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white rounded text-center text-sm font-semibold transition flex items-center justify-center gap-2`}
+                          >
+                            <Eye size={16} />
+                            View
+                          </Link>
+                          <button
+                            onClick={() => handleDeletePokedex(pokedex.id)}
+                            disabled={deletingId === pokedex.id}
+                            className={`px-3 py-2 border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white rounded text-sm font-semibold transition flex items-center justify-center gap-2 disabled:opacity-50`}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Back of card */}
+                    {isFlipped && (
+                      <div
+                        className="flex flex-col h-full"
+                        style={{ transform: "rotateY(180deg)" }}
                       >
-                        Track
-                      </Link>
-                      <button
-                        onClick={() => handleDeletePokedex(pokedex.id)}
-                        disabled={deletingId === pokedex.id}
-                        className="px-3 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white rounded text-sm font-semibold transition"
-                      >
-                        {deletingId === pokedex.id ? "..." : "Delete"}
-                      </button>
-                    </div>
+                        <div className="flex justify-between items-start mb-4">
+                          <h3 className={`text-lg font-bold ${textClass}`}>
+                            Generations
+                          </h3>
+                          <button
+                            onClick={() => setFlippedCardId(null)}
+                            className={`p-2 rounded-lg transition hover:bg-red-500 hover:text-white ${textClass}`}
+                            aria-label="Close"
+                          >
+                            <Info size={20} />
+                          </button>
+                        </div>
+
+                        <div className={`flex-1 overflow-y-auto space-y-2 ${secondaryTextClass} text-sm`}>
+                          {generations.map((gen) => (
+                            <div key={gen}>
+                              Generation {gen} - {genNames[gen]}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}

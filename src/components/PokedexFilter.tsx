@@ -134,7 +134,7 @@ export function PokedexFilter({
             }`}
           >
             <SlidersHorizontal size={18} />
-            Filters
+            <span className="hidden sm:inline">Filters</span>
             {filterCount > 0 && (
               <span className="ml-1 px-2 py-0.5 bg-red-500 text-white rounded-full text-xs font-bold">
                 {filterCount}
