@@ -164,7 +164,6 @@ export default function DashboardPage() {
     );
   }
 
-  const totalCaught = Object.values(stats).reduce((sum, s) => sum + s.caught, 0);
   const totalPossible = Object.values(stats).reduce((sum, s) => sum + s.total, 0);
 
   const isDark = theme === "dark";
