@@ -213,7 +213,7 @@ export default function DashboardPage() {
                 return (
                   <div
                     key={pokedex.id}
-                    className={`relative h-64 ${cardBgClass} border rounded-lg p-6 transition-transform duration-300 cursor-pointer`}
+                    className={`relative h-64 ${cardBgClass} border rounded-lg p-6 transition-all duration-300 cursor-pointer hover:border-red-500`}
                     style={{
                       transformStyle: "preserve-3d",
                       transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
@@ -249,7 +249,7 @@ export default function DashboardPage() {
                           </div>
                           <div className={`w-full ${isDark ? "bg-gray-800" : "bg-gray-200"} rounded-full h-2`}>
                             <div
-                              className="bg-red-500 h-2 rounded-full transition-all"
+                              className="bg-green-500 h-2 rounded-full transition-all"
                               style={{ width: `${percentage}%` }}
                             />
                           </div>
@@ -260,7 +260,7 @@ export default function DashboardPage() {
                         <div className="flex gap-2 mt-auto">
                           <Link
                             href={`/pokedex/${pokedex.id}`}
-                            className={`flex-1 px-3 py-2 border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white rounded text-center text-sm font-semibold transition flex items-center justify-center gap-2`}
+                            className={`flex-1 px-3 py-2 bg-red-500 text-white hover:bg-red-600 rounded text-center text-sm font-semibold transition flex items-center justify-center gap-2`}
                           >
                             <Eye size={16} />
                             View
