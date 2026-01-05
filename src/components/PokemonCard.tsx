@@ -6,6 +6,7 @@ interface PokemonCardProps {
   caught: boolean;
   types: string[];
   hideImages?: boolean;
+  isBrowseMode?: boolean;
   onToggleCaught: (id: number) => void;
   typeColors: Record<string, string>;
 }
@@ -16,26 +17,31 @@ export function PokemonCard({
   caught,
   types,
   hideImages = false,
+  isBrowseMode = false,
   onToggleCaught,
   typeColors,
 }: PokemonCardProps) {
   const officialArtwork = (pokemonId: number) =>
     `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemonId}.png`;
 
+  const isCaught = isBrowseMode ? caught : !caught;
+
   return (
     <div
       onClick={() => onToggleCaught(id)}
       className={`rounded-2xl p-4 cursor-pointer transition-all flex flex-col items-center bg-light-card dark:bg-pokemon-card border ${
-        caught
-          ? "border-gray-900 dark:border-gray-400"
-          : "border-gray-200 dark:border-pokemon-border"
+        !caught && !isBrowseMode  
+          ? "border-red-500"
+          : caught && isBrowseMode
+          ? "border-green-500"
+          : "border-gray-900 dark:border-gray-400"
       }`}
     >
       {/* Pokemon Image */}
       {!hideImages && (
         <div
           className={`w-16 h-16 mb-3 transition-all ${
-            caught ? "grayscale-0" : "grayscale opacity-35"
+            isCaught ? "grayscale-0" : "grayscale opacity-35 blur-sm"
           }`}
         >
           <Image
@@ -51,7 +57,7 @@ export function PokemonCard({
 
       {/* Pokemon ID */}
       <p className={`text-center text-xs font-semibold mb-1 ${
-        caught ? "text-gray-400" : "dark:text-white text-light-text"
+        isCaught ? "text-gray-400" : "dark:text-white text-light-text"
       }`}>
         N°{String(id).padStart(3, "0")}
       </p>
@@ -59,7 +65,7 @@ export function PokemonCard({
       {/* Pokemon Name */}
       <p
         className={`text-center text-sm font-bold text-light-text dark:text-white mb-3 transition-opacity ${
-          caught ? "opacity-100" : "opacity-35"
+          isCaught ? "opacity-100" : "opacity-35"
         }`}
       >
         {name}
@@ -68,7 +74,7 @@ export function PokemonCard({
       {/* Pokemon Types */}
       <div
         className={`flex flex-wrap gap-1 justify-center transition-opacity ${
-          caught ? "opacity-100" : "opacity-35"
+          isCaught ? "opacity-100" : "opacity-35"
         }`}
       >
         {types.map((type) => (

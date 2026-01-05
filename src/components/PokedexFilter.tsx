@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { SlidersHorizontal, ImageOff, MoveLeft } from "lucide-react";
+import { SlidersHorizontal, ImageOff, MoveLeft, Eye, Crosshair } from "lucide-react";
 
 interface PokedexFilterProps {
   search: string;
@@ -16,6 +16,8 @@ interface PokedexFilterProps {
   onHideImagesChange: (value: boolean) => void;
   showFilters: boolean;
   onShowFiltersChange: (value: boolean) => void;
+  isBrowseMode: boolean;
+  onBrowseModeChange: (value: boolean) => void;
   typeList: string[];
   genRanges: Array<{ gen: number; s: number; e: number }>;
   selectedGenerations: number[];
@@ -35,6 +37,8 @@ export function PokedexFilter({
   onHideImagesChange,
   showFilters,
   onShowFiltersChange,
+  isBrowseMode,
+  onBrowseModeChange,
   typeList,
   genRanges,
   selectedGenerations,
@@ -151,6 +155,27 @@ export function PokedexFilter({
             title="Hide images"
           >
             <ImageOff size={18} />
+          </button>
+          <button
+            onClick={() => onBrowseModeChange(!isBrowseMode)}
+            className={`px-4 py-3 border border-solid rounded-xl transition flex items-center gap-2 text-sm font-semibold ${
+              !isBrowseMode
+                ? "bg-red-500 text-white border-red-500"
+                : `${cardBgClass} border hover:border-red-500 ${textClass}`
+            }`}
+            title={isBrowseMode ? "Switch to Catch Mode" : "Switch to Browse Mode"}
+          >
+            {isBrowseMode ? (
+              <>
+                <Eye size={18} />
+                <span className="hidden sm:inline">Browse mode</span>
+              </>
+            ) : (
+              <>
+                <Crosshair size={18} />
+                <span className="hidden sm:inline">Catch Mode</span>
+              </>
+            )}
           </button>
         </div>
 

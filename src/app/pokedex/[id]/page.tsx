@@ -8,6 +8,7 @@ import { Footer } from "@/components/Footer";
 import { PokedexProgress } from "@/components/PokedexProgress";
 import { PokedexFilter } from "@/components/PokedexFilter";
 import { PokemonGrid } from "@/components/PokemonGrid";
+import { PokemonDetailSidebar } from "@/components/PokemonDetailSidebar";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { genRanges, genById, typeColors } from "@/constants/pokemon";
 import { usePokemonStore } from "@/store/pokemonStore";
@@ -46,11 +47,14 @@ export default function PokedexPage() {
   const [caughtFilter, setCaughtFilter] = useState("all");
   const [typeList, setTypeList] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [isBrowseMode, setIsBrowseMode] = useState(true);
 
   const [filteredIds, setFilteredIds] = useState<number[]>([]);
   const [renderIndex, setRenderIndex] = useState(0);
   const [cards, setCards] = useState<PokemonCard[]>([]);
   const [toastMessage, setToastMessage] = useState<{ type: "error" | "success"; text: string } | null>(null);
+  const [selectedPokemonId, setSelectedPokemonId] = useState<number | null>(null);
+  const [selectedPokemonName, setSelectedPokemonName] = useState<string>("");
   const gridRef = useRef<HTMLDivElement>(null);
 
   // Initialize theme and listen for changes
@@ -261,6 +265,17 @@ export default function PokedexPage() {
 
   // Toggle caught - only update card UI, not entire grid
   const toggleCaught = useCallback(async (id: number) => {
+    // In Browse mode, open the detail sidebar
+    if (isBrowseMode) {
+      const card = cards.find((c) => c.id === id);
+      if (card) {
+        setSelectedPokemonId(id);
+        setSelectedPokemonName(card.name);
+      }
+      return;
+    }
+
+    // In Catch mode, toggle caught status
     const isCaught = caughtPokemon.has(id);
 
     // Update card UI only (not the entire grid)
@@ -290,7 +305,66 @@ export default function PokedexPage() {
         });
         setTimeout(() => setToastMessage(null), 3000);
       });
-  }, [caughtPokemon, pokedexId, toggleCaughtPokemon]);
+  }, [isBrowseMode, cards, caughtPokemon, pokedexId, toggleCaughtPokemon]);
+
+  // Handle sidebar caught toggle (always toggles, regardless of mode)
+  const handleSidebarToggleCaught = useCallback(
+    async (id: number) => {
+      const isCaught = caughtPokemon.has(id);
+
+      // Update card UI only (not the entire grid)
+      setCards((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, caught: !c.caught } : c))
+      );
+
+      // Update store in background (don't await to prevent re-render)
+      toggleCaughtPokemon(pokedexId, id)
+        .then(() => {
+          setToastMessage({
+            type: "success",
+            text: isCaught ? "Pokémon unmarked as caught!" : "Pokémon marked as caught!",
+          });
+          setTimeout(() => setToastMessage(null), 3000);
+        })
+        .catch((err) => {
+          console.error("Failed to update caught status:", err);
+          // Revert card UI on error
+          setCards((prev) =>
+            prev.map((c) => (c.id === id ? { ...c, caught: isCaught } : c))
+          );
+          // Show error toast
+          setToastMessage({
+            type: "error",
+            text: "Failed to update Pokémon. Please try again.",
+          });
+          setTimeout(() => setToastMessage(null), 3000);
+        });
+    },
+    [caughtPokemon, pokedexId, toggleCaughtPokemon]
+  );
+
+  // Handle sidebar navigation
+  const handleSidebarNavigate = useCallback(
+    (direction: "prev" | "next") => {
+      if (!selectedPokemonId) return;
+
+      const currentIndex = filteredIds.indexOf(selectedPokemonId);
+      if (currentIndex === -1) return;
+
+      const nextIndex =
+        direction === "next" ? currentIndex + 1 : currentIndex - 1;
+
+      if (nextIndex >= 0 && nextIndex < filteredIds.length) {
+        const nextId = filteredIds[nextIndex];
+        const nextCard = cards.find((c) => c.id === nextId);
+        if (nextCard) {
+          setSelectedPokemonId(nextId);
+          setSelectedPokemonName(nextCard.name);
+        }
+      }
+    },
+    [selectedPokemonId, filteredIds, cards]
+  );
 
   if (!mounted || loading) {
     return (
@@ -355,6 +429,8 @@ export default function PokedexPage() {
         onHideImagesChange={setHideImages}
         showFilters={showFilters}
         onShowFiltersChange={setShowFilters}
+        isBrowseMode={isBrowseMode}
+        onBrowseModeChange={setIsBrowseMode}
         typeList={typeList}
         genRanges={genRanges}
         selectedGenerations={selectedGenerations}
@@ -365,9 +441,21 @@ export default function PokedexPage() {
         cards={cards}
         filteredIdsLength={filteredIds.length}
         hideImages={hideImages}
+        isBrowseMode={isBrowseMode}
         onToggleCaught={toggleCaught}
         typeColors={typeColors}
         gridRef={gridRef}
+      />
+
+      <PokemonDetailSidebar
+        pokemonId={selectedPokemonId || 0}
+        pokemonName={selectedPokemonName}
+        isOpen={selectedPokemonId !== null}
+        onClose={() => setSelectedPokemonId(null)}
+        onNavigate={handleSidebarNavigate}
+        onToggleCaught={handleSidebarToggleCaught}
+        isCaught={selectedPokemonId ? caughtPokemon.has(selectedPokemonId) : false}
+        typeColors={typeColors}
       />
 
       <Footer />

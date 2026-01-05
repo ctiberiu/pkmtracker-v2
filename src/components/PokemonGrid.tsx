@@ -11,6 +11,7 @@ interface PokemonGridProps {
   cards: Card[];
   filteredIdsLength: number;
   hideImages: boolean;
+  isBrowseMode?: boolean;
   onToggleCaught: (id: number) => Promise<void>;
   typeColors: Record<string, string>;
   gridRef: React.RefObject<HTMLDivElement | null>;
@@ -20,6 +21,7 @@ export function PokemonGrid({
   cards,
   filteredIdsLength,
   hideImages,
+  isBrowseMode = false,
   onToggleCaught,
   typeColors,
   gridRef,
@@ -40,6 +42,7 @@ export function PokemonGrid({
               caught={card.caught}
               types={card.types}
               hideImages={hideImages}
+              isBrowseMode={isBrowseMode}
               onToggleCaught={onToggleCaught}
               typeColors={typeColors}
             />
