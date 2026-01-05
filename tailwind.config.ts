@@ -22,6 +22,9 @@ const config: Config = {
         "light-text": "#1a1a1a",
         "pokemon-red": "hsl(0 85% 55%)",
       },
+      blur: {
+        sm: "1px",
+      },
     },
   },
   plugins: [],

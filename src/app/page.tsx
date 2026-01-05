@@ -105,6 +105,7 @@ export default function Home() {
                 id={25}
                 name="Pikachu"
                 caught={true}
+                isBrowseMode={true}
                 types={["electric"]}
                 onToggleCaught={() => {}}
                 typeColors={typeColors}
@@ -115,6 +116,7 @@ export default function Home() {
                 id={6}
                 name="Charizard"
                 caught={true}
+                isBrowseMode={true}
                 types={["fire", "flying"]}
                 onToggleCaught={() => {}}
                 typeColors={typeColors}
@@ -125,6 +127,7 @@ export default function Home() {
                 id={150}
                 name="Mewtwo"
                 caught={false}
+                isBrowseMode={true}
                 types={["psychic"]}
                 onToggleCaught={() => {}}
                 typeColors={typeColors}
