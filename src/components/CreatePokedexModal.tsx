@@ -60,32 +60,32 @@ export function CreatePokedexModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-pokemon-card border border-pokemon-border rounded-lg p-8 w-full max-w-md">
+      <div className="bg-light-card border border-light-border rounded-lg p-8 w-full max-w-md dark:bg-pokemon-card dark:border-pokemon-border">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">Create New Pokédex</h2>
+          <h2 className="text-2xl font-bold text-light-text dark:text-white">Create New Pokédex</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition"
+            className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition"
           >
             <X size={24} />
           </button>
         </div>
 
-        <p className="text-gray-400 mb-6">
+        <p className="text-gray-600 dark:text-gray-400 mb-6">
           Give your Pokédex a name and choose which generation of Pokémon to track.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Error Message */}
           {error && (
-            <div className="px-4 py-3 bg-red-900 border border-red-700 rounded-lg text-red-100 text-sm">
+            <div className="px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-red-700 dark:bg-red-900 dark:border-red-700 dark:text-red-100 text-sm">
               {error}
             </div>
           )}
 
           {/* Name Input */}
           <div>
-            <label className="block text-sm font-semibold mb-2">Pokédex Name</label>
+            <label className="block text-sm font-semibold mb-2 text-light-text dark:text-white">Pokédex Name</label>
             <input
               type="text"
               value={name}
@@ -94,14 +94,14 @@ export function CreatePokedexModal({
                 setError("");
               }}
               placeholder="e.g., My Kanto Adventure"
-              className="w-full px-4 py-2 bg-pokemon-dark border border-pokemon-border rounded-lg focus:outline-none focus:border-pokemon-red"
+              className="w-full px-4 py-2 bg-white border border-light-border rounded-lg focus:outline-none focus:border-pokemon-red text-light-text placeholder-gray-400 dark:bg-pokemon-dark dark:border-pokemon-border dark:text-white dark:placeholder-gray-400"
             />
           </div>
 
           {/* Generation Selection */}
           <div>
             <div className="flex justify-between items-center mb-3">
-              <label className="block text-sm font-semibold">Generations</label>
+              <label className="block text-sm font-semibold text-light-text dark:text-white">Generations</label>
               <button
                 type="button"
                 onClick={toggleAll}
@@ -120,7 +120,7 @@ export function CreatePokedexModal({
                   className={`px-3 py-2 rounded-lg text-sm font-semibold transition ${
                     selectedGens.has(range.gen)
                       ? "bg-pokemon-red text-white"
-                      : "bg-pokemon-dark border border-pokemon-border text-gray-400 hover:border-pokemon-red"
+                      : "bg-light-bg border border-light-border text-gray-600 hover:border-pokemon-red dark:bg-pokemon-dark dark:border-pokemon-border dark:text-gray-400 dark:hover:border-pokemon-red"
                   }`}
                 >
                   Gen {range.gen}
@@ -129,7 +129,7 @@ export function CreatePokedexModal({
             </div>
 
             {selectedGens.size > 0 && (
-              <p className="text-xs text-gray-400 mt-3">
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-3">
                 Selected: {Array.from(selectedGens)
                   .sort()
                   .map((gen) => genRanges.find((r) => r.gen === gen)?.name)
@@ -143,7 +143,7 @@ export function CreatePokedexModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 bg-pokemon-dark border border-pokemon-border rounded-lg hover:border-pokemon-red transition font-semibold"
+              className="flex-1 px-4 py-2 bg-light-bg border border-light-border rounded-lg hover:border-pokemon-red transition font-semibold text-light-text dark:bg-pokemon-dark dark:border-pokemon-border dark:text-white dark:hover:border-pokemon-red"
             >
               Cancel
             </button>

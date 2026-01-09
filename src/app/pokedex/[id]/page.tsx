@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PokedexProgress } from "@/components/PokedexProgress";
@@ -26,6 +26,7 @@ interface PokemonCard {
 
 export default function PokedexPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const pokedexId = params.id as string;
   const router = useRouter();
 
@@ -49,6 +50,7 @@ export default function PokedexPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [isBrowseMode, setIsBrowseMode] = useState(true);
 
+  const [allIds, setAllIds] = useState<number[]>([]);
   const [filteredIds, setFilteredIds] = useState<number[]>([]);
   const [renderIndex, setRenderIndex] = useState(0);
   const [cards, setCards] = useState<PokemonCard[]>([]);
@@ -189,7 +191,23 @@ export default function PokedexPage() {
     fetchData();
   }, [loading]);
 
-  // Compute filtered IDs
+  // Compute all IDs in selected generations (for navigation)
+  const computeAllIds = useCallback(() => {
+    const ids = Array.from(idToName.keys()).sort((a, b) => a - b);
+    const out: number[] = [];
+
+    for (const id of ids) {
+      const gen = genById(id);
+      if (!gen) continue;
+      // Only include pokemon from selected generations
+      if (!selectedGenerations.includes(gen)) continue;
+      out.push(id);
+    }
+
+    return out;
+  }, [idToName, selectedGenerations]);
+
+  // Compute filtered IDs (for display)
   const computeFilteredIds = useCallback(() => {
     const ids = Array.from(idToName.keys()).sort((a, b) => a - b);
     const out: number[] = [];
@@ -214,13 +232,15 @@ export default function PokedexPage() {
     return out;
   }, [search, genFilter, typeFilter, caughtFilter, idToName, idToTypes, selectedGenerations]);
 
-  // Update filtered IDs when filters change
+  // Update all IDs and filtered IDs when filters change
   useEffect(() => {
-    const ids = computeFilteredIds();
-    setFilteredIds(ids);
+    const allPokemonIds = computeAllIds();
+    const filteredPokemonIds = computeFilteredIds();
+    setAllIds(allPokemonIds);
+    setFilteredIds(filteredPokemonIds);
     setRenderIndex(0);
     setCards([]);
-  }, [computeFilteredIds]);
+  }, [computeAllIds, computeFilteredIds]);
 
   // Render next batch
   const appendNextBatch = useCallback(() => {
@@ -263,6 +283,39 @@ export default function PokedexPage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [appendNextBatch]);
 
+  // Load pokemon from URL on mount if present
+  useEffect(() => {
+    if (!mounted || loading || allIds.length === 0 || idToName.size === 0) return;
+
+    const pokemonParam = searchParams.get("pokemon");
+    if (pokemonParam) {
+      const pokemonId = parseInt(pokemonParam, 10);
+      
+      // Check if pokemon exists in unfiltered pokedex
+      if (allIds.includes(pokemonId)) {
+        const pokemonName = idToName.get(pokemonId);
+        if (pokemonName) {
+          setSelectedPokemonId(pokemonId);
+          setSelectedPokemonName(pokemonName);
+        }
+      } else {
+        // Pokemon doesn't exist in this pokedex, remove from URL
+        router.push(`/pokedex/${pokedexId}`);
+      }
+    }
+  }, [mounted, loading, allIds, idToName, searchParams, pokedexId, router]);
+
+  // Handle browser back button to close sidebar
+  useEffect(() => {
+    const handlePopState = () => {
+      setSelectedPokemonId(null);
+      setSelectedPokemonName("");
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
   // Toggle caught - only update card UI, not entire grid
   const toggleCaught = useCallback(async (id: number) => {
     // In Browse mode, open the detail sidebar
@@ -271,6 +324,7 @@ export default function PokedexPage() {
       if (card) {
         setSelectedPokemonId(id);
         setSelectedPokemonName(card.name);
+        router.push(`/pokedex/${pokedexId}?pokemon=${id}`);
       }
       return;
     }
@@ -343,27 +397,28 @@ export default function PokedexPage() {
     [caughtPokemon, pokedexId, toggleCaughtPokemon]
   );
 
-  // Handle sidebar navigation
+  // Handle sidebar navigation (uses allIds to navigate through all pokemon, not just filtered)
   const handleSidebarNavigate = useCallback(
     (direction: "prev" | "next") => {
       if (!selectedPokemonId) return;
 
-      const currentIndex = filteredIds.indexOf(selectedPokemonId);
+      const currentIndex = allIds.indexOf(selectedPokemonId);
       if (currentIndex === -1) return;
 
       const nextIndex =
         direction === "next" ? currentIndex + 1 : currentIndex - 1;
 
-      if (nextIndex >= 0 && nextIndex < filteredIds.length) {
-        const nextId = filteredIds[nextIndex];
-        const nextCard = cards.find((c) => c.id === nextId);
-        if (nextCard) {
+      if (nextIndex >= 0 && nextIndex < allIds.length) {
+        const nextId = allIds[nextIndex];
+        const nextName = idToName.get(nextId);
+        if (nextName) {
           setSelectedPokemonId(nextId);
-          setSelectedPokemonName(nextCard.name);
+          setSelectedPokemonName(nextName);
+          router.push(`/pokedex/${pokedexId}?pokemon=${nextId}`);
         }
       }
     },
-    [selectedPokemonId, filteredIds, cards]
+    [selectedPokemonId, allIds, idToName, pokedexId, router]
   );
 
   if (!mounted || loading) {
@@ -451,11 +506,16 @@ export default function PokedexPage() {
         pokemonId={selectedPokemonId || 0}
         pokemonName={selectedPokemonName}
         isOpen={selectedPokemonId !== null}
-        onClose={() => setSelectedPokemonId(null)}
+        onClose={() => {
+          setSelectedPokemonId(null);
+          router.push(`/pokedex/${pokedexId}`);
+        }}
         onNavigate={handleSidebarNavigate}
         onToggleCaught={handleSidebarToggleCaught}
         isCaught={selectedPokemonId ? caughtPokemon.has(selectedPokemonId) : false}
         typeColors={typeColors}
+        canNavigatePrev={selectedPokemonId !== null && allIds.indexOf(selectedPokemonId) > 0}
+        canNavigateNext={selectedPokemonId !== null && allIds.indexOf(selectedPokemonId) < allIds.length - 1}
       />
 
       <Footer />

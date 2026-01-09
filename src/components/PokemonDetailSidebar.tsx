@@ -33,6 +33,8 @@ interface PokemonDetailSidebarProps {
   onToggleCaught: (id: number) => void;
   isCaught: boolean;
   typeColors: Record<string, string>;
+  canNavigatePrev?: boolean;
+  canNavigateNext?: boolean;
 }
 
 export function PokemonDetailSidebar({
@@ -44,6 +46,8 @@ export function PokemonDetailSidebar({
   onToggleCaught,
   isCaught,
   typeColors,
+  canNavigatePrev = true,
+  canNavigateNext = true,
 }: PokemonDetailSidebarProps) {
   const [detail, setDetail] = useState<PokemonDetail | null>(null);
   const [loading, setLoading] = useState(false);
@@ -365,23 +369,32 @@ export function PokemonDetailSidebar({
               {/* Previous Pokemon */}
               <button
                 onClick={() => onNavigate("prev")}
-                className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-700 transition ${textClass}`}
+                disabled={!canNavigatePrev}
+                className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-lg transition ${
+                  canNavigatePrev
+                    ? `hover:bg-gray-700 ${textClass}`
+                    : `opacity-50 cursor-not-allowed ${secondaryTextClass}`
+                }`}
               >
                 <ChevronLeft size={20} />
-                <div className="relative w-8 h-8">
-                  <Image
-                    src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${detail.id - 1}.png`}
-                    alt="previous"
-                    fill
-                    className="object-contain"
-                    onError={(e) => {
-                      e.currentTarget.style.display = "none";
-                    }}
-                  />
-                </div>
-                <div className="text-left">
-                  <p className="text-xs font-semibold">#{String(detail.id - 1).padStart(3, "0")}</p>
-                </div>
+                {canNavigatePrev && (
+                  <>
+                    <div className="relative w-8 h-8">
+                      <Image
+                        src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${detail.id - 1}.png`}
+                        alt="previous"
+                        fill
+                        className="object-contain"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-xs font-semibold">#{String(detail.id - 1).padStart(3, "0")}</p>
+                    </div>
+                  </>
+                )}
               </button>
 
               {/* Divider */}
@@ -390,22 +403,31 @@ export function PokemonDetailSidebar({
               {/* Next Pokemon */}
               <button
                 onClick={() => onNavigate("next")}
-                className={`flex-1 flex items-center justify-end gap-2 px-3 py-2 rounded-lg hover:bg-gray-700 transition ${textClass}`}
+                disabled={!canNavigateNext}
+                className={`flex-1 flex items-center justify-end gap-2 px-3 py-2 rounded-lg transition ${
+                  canNavigateNext
+                    ? `hover:bg-gray-700 ${textClass}`
+                    : `opacity-50 cursor-not-allowed ${secondaryTextClass}`
+                }`}
               >
-                <div className="text-right">
-                  <p className="text-xs font-semibold">#{String(detail.id + 1).padStart(3, "0")}</p>
-                </div>
-                <div className="relative w-8 h-8">
-                  <Image
-                    src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${detail.id + 1}.png`}
-                    alt="next"
-                    fill
-                    className="object-contain"
-                    onError={(e) => {
-                      e.currentTarget.style.display = "none";
-                    }}
-                  />
-                </div>
+                {canNavigateNext && (
+                  <>
+                    <div className="text-right">
+                      <p className="text-xs font-semibold">#{String(detail.id + 1).padStart(3, "0")}</p>
+                    </div>
+                    <div className="relative w-8 h-8">
+                      <Image
+                        src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${detail.id + 1}.png`}
+                        alt="next"
+                        fill
+                        className="object-contain"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                    </div>
+                  </>
+                )}
                 <ChevronRight size={20} />
               </button>
             </div>
