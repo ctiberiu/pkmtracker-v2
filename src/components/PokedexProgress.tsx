@@ -1,14 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ExportComponent } from "./ExportComponent";
+
+interface PokemonData {
+  id: number;
+  name: string;
+  caught: boolean;
+}
 
 interface PokedexProgressProps {
   caughtCount: number;
   totalCount: number;
   pokedexName: string;
+  filteredPokemon: PokemonData[];
+  hideImages?: boolean;
 }
 
-export function PokedexProgress({ caughtCount, totalCount, pokedexName }: PokedexProgressProps) {
+export function PokedexProgress({ caughtCount, totalCount, pokedexName, filteredPokemon, hideImages = false }: PokedexProgressProps) {
   const [theme, setTheme] = useState<"light" | "dark">("dark");
   const [mounted, setMounted] = useState(false);
   const percentage = totalCount > 0 ? Math.round((caughtCount / totalCount) * 100) : 0;
@@ -43,24 +52,31 @@ export function PokedexProgress({ caughtCount, totalCount, pokedexName }: Pokede
 
   return (
     <div className={`pt-4 ${bgClass}`}>
-      <div className="max-w-7xl mx-auto px-4 flex gap-4 flex-col sm:flex-row">
-        {/* Pokedex Name Section */}
-        <div className={`px-4 py-3 ${cardBgClass} border rounded-xl flex flex-col`}>
-          <p className={`text-xs ${secondaryTextClass} mb-1`}>NAME</p>
-          <h1 className={`text-2xl font-bold leading-none ${textClass}`}>{pokedexName}</h1>
+      <div className="max-w-7xl mx-auto px-4 flex gap-4 flex-col sm:flex-row items-stretch sm:items-stretch justify-between">
+        <div className="flex gap-4 flex-col sm:flex-row flex-1">
+          {/* Pokedex Name Section */}
+          <div className={`px-4 py-3 ${cardBgClass} border rounded-xl flex flex-col`}>
+            <p className={`text-xs ${secondaryTextClass} mb-1`}>NAME</p>
+            <h1 className={`text-2xl font-bold leading-none ${textClass}`}>{pokedexName}</h1>
+          </div>
+
+          <div className={`px-4 py-3 ${cardBgClass} border rounded-xl flex-1 flex flex-col justify-center`}>
+            <div className="flex items-center justify-between mb-3">
+              <span className={`text-sm font-semibold ${textClass}`}>{caughtCount} / {totalCount} caught</span>
+              <span className="text-sm font-semibold text-green-500">{percentage}%</span>
+            </div>
+            <div className={`w-full ${progressBgClass} rounded-full h-2 overflow-hidden border`}>
+              <div
+                className="bg-green-500 h-full transition-all duration-300"
+                style={{ width: `${percentage}%` }}
+              />
+            </div>
+          </div>
         </div>
 
-        <div className={`px-4 py-3 ${cardBgClass} border rounded-xl flex-1 flex flex-col justify-center`}>
-          <div className="flex items-center justify-between mb-3">
-            <span className={`text-sm font-semibold ${textClass}`}>{caughtCount} / {totalCount} caught</span>
-            <span className="text-sm font-semibold text-green-500">{percentage}%</span>
-          </div>
-          <div className={`w-full ${progressBgClass} rounded-full h-2 overflow-hidden border`}>
-            <div
-              className="bg-green-500 h-full transition-all duration-300"
-              style={{ width: `${percentage}%` }}
-            />
-          </div>
+        {/* Export Button */}
+        <div className={`px-4 py-3 ${cardBgClass} border rounded-xl flex flex-col justify-center`}>
+          <ExportComponent theme={theme} filteredPokemon={filteredPokemon} pokedexName={pokedexName} hideImages={hideImages} />
         </div>
       </div>
     </div>

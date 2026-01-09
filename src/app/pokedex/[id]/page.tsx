@@ -469,7 +469,17 @@ export default function PokedexPage() {
 
       <Header title={`${counterText}`} />
 
-      <PokedexProgress caughtCount={caughtCount} totalCount={totalInGenerations} pokedexName={pokedexName} />
+      <PokedexProgress 
+        caughtCount={caughtCount} 
+        totalCount={totalInGenerations} 
+        pokedexName={pokedexName}
+        filteredPokemon={filteredIds.map(id => ({
+          id,
+          name: idToName.get(id) || "",
+          caught: caughtPokemon.has(id)
+        }))}
+        hideImages={hideImages}
+      />
 
       <PokedexFilter
         search={search}
