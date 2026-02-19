@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { SlidersHorizontal, ImageOff, MoveLeft, Eye, Crosshair } from "lucide-react";
+import { SlidersHorizontal, ImageOff, MoveLeft, Crosshair, X, Hand, ChevronUp } from "lucide-react";
 
 interface PokedexFilterProps {
   search: string;
@@ -46,6 +46,7 @@ export function PokedexFilter({
 }: PokedexFilterProps) {
   const [theme, setTheme] = useState<"light" | "dark">("dark");
   const [mounted, setMounted] = useState(false);
+  const [isScrollTopVisible, setIsScrollTopVisible] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -66,6 +67,16 @@ export function PokedexFilter({
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    const toggleVisibility = () => {
+      setIsScrollTopVisible(window.scrollY > 300);
+    };
+
+    toggleVisibility();
+    window.addEventListener("scroll", toggleVisibility);
+    return () => window.removeEventListener("scroll", toggleVisibility);
+  }, []);
+
   if (!mounted) return null;
 
   const isDark = theme === "dark";
@@ -76,6 +87,8 @@ export function PokedexFilter({
   const textClass = isDark ? "text-white" : "text-gray-900";
   const secondaryTextClass = isDark ? "text-gray-400" : "text-gray-600";
   const borderClass = isDark ? "border-gray-800" : "border-gray-300";
+
+  const isCatchMode = !isBrowseMode;
 
   const toggleTypeFilter = (type: string) => {
     if (type === "all") {
@@ -108,6 +121,10 @@ export function PokedexFilter({
   };
 
   const filterCount = typeFilter.size + genFilter.size + (caughtFilter !== "all" ? 1 : 0);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <div className={`sticky top-0 z-40 ${bgClass}`}>
@@ -156,28 +173,19 @@ export function PokedexFilter({
           >
             <ImageOff size={18} />
           </button>
-          <button
-            onClick={() => onBrowseModeChange(!isBrowseMode)}
-            className={`px-4 py-3 border border-solid rounded-xl transition flex items-center gap-2 text-sm font-semibold ${
-              !isBrowseMode
-                ? "bg-red-500 text-white border-red-500"
-                : `${cardBgClass} border hover:border-red-500 ${textClass}`
-            }`}
-            title={isBrowseMode ? "Switch to Catch Mode" : "Switch to Browse Mode"}
-          >
-            {isBrowseMode ? (
-              <>
-                <Eye size={18} />
-                <span className="hidden sm:inline">Browse mode</span>
-              </>
-            ) : (
-              <>
-                <Crosshair size={18} />
-                <span className="hidden sm:inline">Catch Mode</span>
-              </>
-            )}
-          </button>
         </div>
+
+        {isCatchMode && (
+          <div className="hidden sm:flex justify-center pt-4">
+            <div
+              className={`px-6 py-3 rounded-2xl border border-red-500 ${isDark ? "bg-gray-950/90" : "bg-white/90"} backdrop-blur text-red-500 font-semibold flex items-center gap-3`}
+              style={{ animation: "pkm-catch-hint-pulse 1.4s ease-in-out infinite" }}
+            >
+              <Hand size={18} />
+              <span>Tap a Pokémon to catch or release it</span>
+            </div>
+          </div>
+        )}
 
         {/* Expandable Filters Panel */}
         {showFilters && (
@@ -301,6 +309,94 @@ export function PokedexFilter({
           </div>
         )}
       </div>
+
+      {isCatchMode && (
+        <div
+          className="fixed inset-0 z-40 pointer-events-none border-2 border-red-500"
+          style={{ animation: "pkm-catch-border-pulse 1.6s ease-in-out infinite" }}
+        />
+      )}
+
+      {isCatchMode && (
+        <></>
+      )}
+
+      <div className="fixed z-50 bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:bottom-6 sm:w-auto flex flex-col gap-3 items-stretch sm:items-end pointer-events-none">
+        {isCatchMode && (
+          <div className="sm:hidden w-full">
+            <div
+              className={`w-full px-5 py-3 rounded-2xl border border-red-500 ${isDark ? "bg-gray-950/90" : "bg-white/90"} backdrop-blur text-red-500 font-semibold flex items-center justify-center gap-3`}
+              style={{ animation: "pkm-catch-hint-pulse 1.4s ease-in-out infinite" }}
+            >
+              <Hand size={18} />
+              <span>Tap a Pokémon to catch or release it</span>
+            </div>
+          </div>
+        )}
+
+        <div className="flex flex-row gap-3 w-full sm:w-auto items-stretch sm:items-center justify-stretch sm:justify-end">
+          <button
+            onClick={() => onBrowseModeChange(!isBrowseMode)}
+            className={`pointer-events-auto flex-1 sm:flex-none w-auto px-4 py-3 border border-solid rounded-xl transition flex items-center justify-center gap-2 text-sm font-semibold ${
+              isCatchMode
+                ? "bg-red-500 text-white border-red-500"
+                : `${cardBgClass} border border-red-500 hover:border-red-500 ${textClass}`
+            }`}
+            style={{ animation: "pkm-catch-button-pulse 1.2s ease-in-out infinite" }}
+            title={isCatchMode ? "Exit catch mode" : "Enter catch mode"}
+          >
+            {isCatchMode ? <X size={20} /> : <Crosshair size={20} />}
+            <span>{isCatchMode ? "Exit catch mode" : "Enter catch mode"}</span>
+          </button>
+
+          {isScrollTopVisible && (
+            <button
+              onClick={scrollToTop}
+              className={`pointer-events-auto flex-shrink-0 w-12 sm:w-auto px-0 sm:px-4 py-3 border border-solid rounded-xl transition flex items-center justify-center gap-2 text-sm font-semibold ${cardBgClass} border hover:border-red-500 ${textClass}`}
+              aria-label="Scroll to top"
+              title="Scroll to top"
+            >
+              <ChevronUp size={18} />
+            </button>
+          )}
+        </div>
+      </div>
+
+      <style jsx global>{`
+        @keyframes pkm-catch-button-pulse {
+          0%,
+          100% {
+            box-shadow: 0 0 0 rgba(239, 68, 68, 0.0), 0 0 18px rgba(239, 68, 68, 0.35);
+            transform: translateY(0);
+          }
+          50% {
+            box-shadow: 0 0 0 rgba(239, 68, 68, 0.0), 0 0 28px rgba(239, 68, 68, 0.65);
+            transform: translateY(-1px);
+          }
+        }
+
+        @keyframes pkm-catch-hint-pulse {
+          0%,
+          100% {
+            box-shadow: 0 0 18px rgba(239, 68, 68, 0.25);
+          }
+          50% {
+            box-shadow: 0 0 28px rgba(239, 68, 68, 0.55);
+          }
+        }
+
+        @keyframes pkm-catch-border-pulse {
+          0%,
+          100% {
+            opacity: 0.55;
+            box-shadow: inset 0 0 0 2px rgba(239, 68, 68, 0.35), 0 0 0 1px rgba(239, 68, 68, 0.2);
+          }
+          50% {
+            opacity: 0.9;
+            box-shadow: inset 0 0 0 2px rgba(239, 68, 68, 0.75), 0 0 0 1px rgba(239, 68, 68, 0.45);
+          }
+        }
+      `}</style>
     </div>
   );
 }

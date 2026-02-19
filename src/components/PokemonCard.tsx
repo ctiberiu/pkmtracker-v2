@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { Check } from "lucide-react";
 
 interface PokemonCardProps {
   id: number;
@@ -29,7 +30,7 @@ export function PokemonCard({
   return (
     <div
       onClick={() => onToggleCaught(id)}
-      className={`rounded-2xl p-4 cursor-pointer transition-all flex flex-col items-center bg-light-card dark:bg-pokemon-card border ${
+      className={`relative rounded-2xl p-4 cursor-pointer transition-all flex flex-col items-center bg-light-card dark:bg-pokemon-card border ${
         !caught && !isBrowseMode  
           ? "border-red-500"
           : caught && isBrowseMode
@@ -37,6 +38,14 @@ export function PokemonCard({
           : "border-gray-900 dark:border-gray-400"
       }`}
     >
+      {caught && (
+        <span
+          className="absolute top-2 right-2 w-6 h-6 rounded-full bg-transparent text-green-400 border-2 border-green-400 flex items-center justify-center"
+        >
+          <Check size={14} strokeWidth={4} />
+        </span>
+      )}
+
       {/* Pokemon Image */}
       {!hideImages && (
         <div

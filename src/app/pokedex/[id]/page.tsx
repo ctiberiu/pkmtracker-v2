@@ -9,7 +9,6 @@ import { PokedexProgress } from "@/components/PokedexProgress";
 import { PokedexFilter } from "@/components/PokedexFilter";
 import { PokemonGrid } from "@/components/PokemonGrid";
 import { PokemonDetailSidebar } from "@/components/PokemonDetailSidebar";
-import { ScrollToTop } from "@/components/ScrollToTop";
 import { genRanges, genById, typeColors } from "@/constants/pokemon";
 import { usePokemonStore } from "@/store/pokemonStore";
 
@@ -529,7 +528,6 @@ export default function PokedexPage() {
       />
 
       <Footer />
-      <ScrollToTop />
     </main>
   );
 }

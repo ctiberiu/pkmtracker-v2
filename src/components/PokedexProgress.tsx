@@ -75,9 +75,9 @@ export function PokedexProgress({ caughtCount, totalCount, pokedexName, filtered
         </div>
 
         {/* Export Button */}
-        <div className={`px-4 py-3 ${cardBgClass} border rounded-xl flex flex-col justify-center`}>
+        {/* <div className={`px-4 py-3 ${cardBgClass} border rounded-xl flex flex-col justify-center`}>
           <ExportComponent theme={theme} filteredPokemon={filteredPokemon} pokedexName={pokedexName} hideImages={hideImages} />
-        </div>
+        </div> */}
       </div>
     </div>
   );
