@@ -23,7 +23,7 @@ export function PokemonCard({
   typeColors,
 }: PokemonCardProps) {
   const officialArtwork = (pokemonId: number) =>
-    `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemonId}.png`;
+    `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemonId}.png`;
 
   const isCaught = isBrowseMode ? caught : !caught;
 
@@ -49,15 +49,15 @@ export function PokemonCard({
       {/* Pokemon Image */}
       {!hideImages && (
         <div
-          className={`w-16 h-16 mb-3 transition-all ${
+          className={`w-24 h-24 mb-3 transition-all ${
             isCaught ? "grayscale-0" : "grayscale opacity-35 blur-sm"
           }`}
         >
           <Image
             src={officialArtwork(id)}
             alt={name}
-            width={64}
-            height={64}
+            width={96}
+            height={96}
             className="object-contain"
             loading="lazy"
           />

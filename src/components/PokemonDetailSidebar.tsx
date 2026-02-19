@@ -111,7 +111,6 @@ export function PokemonDetailSidebar({
 
         // Get image
         const image =
-          pokemonData.sprites.other["official-artwork"].front_default ||
           pokemonData.sprites.front_default ||
           "";
 
@@ -157,7 +156,7 @@ export function PokemonDetailSidebar({
         evolutionLine.push({
           id: speciesId,
           name: node.species.name,
-          image: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${speciesId}.png`,
+          image: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${speciesId}.png`,
         });
       }
 
@@ -372,16 +371,18 @@ export function PokemonDetailSidebar({
                 disabled={!canNavigatePrev}
                 className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-lg transition ${
                   canNavigatePrev
-                    ? `hover:bg-gray-700 ${textClass}`
+                    ? isDark
+                      ? `hover:bg-gray-700 ${textClass}`
+                      : `outline outline-2 outline-transparent hover:outline-red-500 ${textClass}`
                     : `opacity-50 cursor-not-allowed ${secondaryTextClass}`
                 }`}
               >
                 <ChevronLeft size={20} />
                 {canNavigatePrev && (
                   <>
-                    <div className="relative w-8 h-8">
+                    <div className="relative w-12 h-12">
                       <Image
-                        src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${detail.id - 1}.png`}
+                        src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${detail.id - 1}.png`}
                         alt="previous"
                         fill
                         className="object-contain"
@@ -406,7 +407,9 @@ export function PokemonDetailSidebar({
                 disabled={!canNavigateNext}
                 className={`flex-1 flex items-center justify-end gap-2 px-3 py-2 rounded-lg transition ${
                   canNavigateNext
-                    ? `hover:bg-gray-700 ${textClass}`
+                    ? isDark
+                      ? `hover:bg-gray-700 ${textClass}`
+                      : `outline outline-2 outline-transparent hover:outline-red-500 ${textClass}`
                     : `opacity-50 cursor-not-allowed ${secondaryTextClass}`
                 }`}
               >
@@ -415,9 +418,9 @@ export function PokemonDetailSidebar({
                     <div className="text-right">
                       <p className="text-xs font-semibold">#{String(detail.id + 1).padStart(3, "0")}</p>
                     </div>
-                    <div className="relative w-8 h-8">
+                    <div className="relative w-12 h-12">
                       <Image
-                        src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${detail.id + 1}.png`}
+                        src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${detail.id + 1}.png`}
                         alt="next"
                         fill
                         className="object-contain"
