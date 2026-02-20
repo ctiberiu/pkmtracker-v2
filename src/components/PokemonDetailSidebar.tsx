@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { X, ChevronLeft, ChevronRight, Check } from "lucide-react";
+import { AssignTcgToPokemon } from "@/components/AssignTcgToPokemon";
 
 interface Evolution {
   id: number;
@@ -52,6 +53,7 @@ export function PokemonDetailSidebar({
   const [detail, setDetail] = useState<PokemonDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">("dark");
+  const [isAssigningCard, setIsAssigningCard] = useState(false);
 
   useEffect(() => {
     const isDarkMode = document.documentElement.classList.contains("dark");
@@ -146,6 +148,12 @@ export function PokemonDetailSidebar({
     fetchPokemonDetail();
   }, [pokemonId, pokemonName, isOpen, typeColors]);
 
+  useEffect(() => {
+    if (!isOpen) {
+      setIsAssigningCard(false);
+    }
+  }, [isOpen]);
+
   const parseEvolutions = (chain: any, currentId: number): { before: Evolution[]; after: Evolution[] } => {
     const evolutionLine: any[] = [];
 
@@ -228,6 +236,10 @@ export function PokemonDetailSidebar({
           </div>
         ) : detail ? (
           <div className="p-6 space-y-6">
+            {isAssigningCard ? (
+              <AssignTcgToPokemon pokemonId={pokemonId} pokemonName={pokemonName} />
+            ) : (
+              <>
             {/* Pokemon Image */}
             <div className="flex justify-center">
               <div className={`relative w-40 h-40 transition-all ${
@@ -344,6 +356,16 @@ export function PokemonDetailSidebar({
               </div>
             )}
 
+            {/* Assign Card Button */}
+            <button
+              onClick={() => setIsAssigningCard(true)}
+              className={`w-full px-4 py-3 rounded-lg font-semibold transition flex items-center justify-center gap-2 ${
+                isDark ? "bg-gray-800 hover:bg-gray-700" : "bg-gray-100 hover:bg-gray-200"
+              } ${textClass}`}
+            >
+              Assign Card
+            </button>
+
             {/* Caught Status Button */}
             <button
               onClick={() => onToggleCaught(pokemonId)}
@@ -364,76 +386,80 @@ export function PokemonDetailSidebar({
             </button>
 
             {/* Navigation */}
-            <div className={`flex items-center justify-between pt-4 border-t ${borderClass} gap-4`}>
-              {/* Previous Pokemon */}
-              <button
-                onClick={() => onNavigate("prev")}
-                disabled={!canNavigatePrev}
-                className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-lg transition ${
-                  canNavigatePrev
-                    ? isDark
-                      ? `hover:bg-gray-700 ${textClass}`
-                      : `outline outline-2 outline-transparent hover:outline-red-500 ${textClass}`
-                    : `opacity-50 cursor-not-allowed ${secondaryTextClass}`
-                }`}
-              >
-                <ChevronLeft size={20} />
-                {canNavigatePrev && (
-                  <>
-                    <div className="relative w-12 h-12">
-                      <Image
-                        src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${detail.id - 1}.png`}
-                        alt="previous"
-                        fill
-                        className="object-contain"
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none";
-                        }}
-                      />
-                    </div>
-                    <div className="text-left">
-                      <p className="text-xs font-semibold">#{String(detail.id - 1).padStart(3, "0")}</p>
-                    </div>
-                  </>
-                )}
-              </button>
+            {!isAssigningCard && (
+              <div className={`flex items-center justify-between pt-4 border-t ${borderClass} gap-4`}>
+                {/* Previous Pokemon */}
+                <button
+                  onClick={() => onNavigate("prev")}
+                  disabled={!canNavigatePrev}
+                  className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-lg transition ${
+                    canNavigatePrev
+                      ? isDark
+                        ? `hover:bg-gray-700 ${textClass}`
+                        : `outline outline-2 outline-transparent hover:outline-red-500 ${textClass}`
+                      : `opacity-50 cursor-not-allowed ${secondaryTextClass}`
+                  }`}
+                >
+                  <ChevronLeft size={20} />
+                  {canNavigatePrev && (
+                    <>
+                      <div className="relative w-12 h-12">
+                        <Image
+                          src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${detail.id - 1}.png`}
+                          alt="previous"
+                          fill
+                          className="object-contain"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
+                      </div>
+                      <div className="text-left">
+                        <p className="text-xs font-semibold">#{String(detail.id - 1).padStart(3, "0")}</p>
+                      </div>
+                    </>
+                  )}
+                </button>
 
-              {/* Divider */}
-              <div className={`w-px h-8 ${borderClass}`} />
+                {/* Divider */}
+                <div className={`w-px h-8 ${borderClass}`} />
 
-              {/* Next Pokemon */}
-              <button
-                onClick={() => onNavigate("next")}
-                disabled={!canNavigateNext}
-                className={`flex-1 flex items-center justify-end gap-2 px-3 py-2 rounded-lg transition ${
-                  canNavigateNext
-                    ? isDark
-                      ? `hover:bg-gray-700 ${textClass}`
-                      : `outline outline-2 outline-transparent hover:outline-red-500 ${textClass}`
-                    : `opacity-50 cursor-not-allowed ${secondaryTextClass}`
-                }`}
-              >
-                {canNavigateNext && (
-                  <>
-                    <div className="text-right">
-                      <p className="text-xs font-semibold">#{String(detail.id + 1).padStart(3, "0")}</p>
-                    </div>
-                    <div className="relative w-12 h-12">
-                      <Image
-                        src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${detail.id + 1}.png`}
-                        alt="next"
-                        fill
-                        className="object-contain"
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none";
-                        }}
-                      />
-                    </div>
-                  </>
-                )}
-                <ChevronRight size={20} />
-              </button>
-            </div>
+                {/* Next Pokemon */}
+                <button
+                  onClick={() => onNavigate("next")}
+                  disabled={!canNavigateNext}
+                  className={`flex-1 flex items-center justify-end gap-2 px-3 py-2 rounded-lg transition ${
+                    canNavigateNext
+                      ? isDark
+                        ? `hover:bg-gray-700 ${textClass}`
+                        : `outline outline-2 outline-transparent hover:outline-red-500 ${textClass}`
+                      : `opacity-50 cursor-not-allowed ${secondaryTextClass}`
+                  }`}
+                >
+                  {canNavigateNext && (
+                    <>
+                      <div className="text-right">
+                        <p className="text-xs font-semibold">#{String(detail.id + 1).padStart(3, "0")}</p>
+                      </div>
+                      <div className="relative w-12 h-12">
+                        <Image
+                          src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${detail.id + 1}.png`}
+                          alt="next"
+                          fill
+                          className="object-contain"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
+                      </div>
+                    </>
+                  )}
+                  <ChevronRight size={20} />
+                </button>
+              </div>
+            )}
+              </>
+            )}
           </div>
         ) : null}
       </div>
